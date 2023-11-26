@@ -1,11 +1,13 @@
 import javax.swing.*;
+import java.awt.*;
+
 
 
 public class Yahtzee {
     public static void main(String [] args){
-        JFrame frame = new JFrame( "Yahtzee" );
-        frame.setDefaultCloseOperation( JFrame.EXIT_ON_CLOSE );
-        frame.setSize( 500, 500 ); 
+        YahtzeeJFrame frame = new YahtzeeJFrame();
         frame.setVisible( true );
     }
+
+    
 }
