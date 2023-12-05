@@ -10,9 +10,7 @@ public class YahtzeeJFrame extends JFrame {
     private GameBoardJPanel gameBoard;
     private CardLayout cardLayout;
     private JPanel mainPanel;
-	private Dice[] dice = new Dice[5];
-	private Player[] players;
-	private int currRoll = 1;
+
     YahtzeeJFrame(){
         super("Yahtzee");
         mainMenu = new MainMenuJPanel();
@@ -24,16 +22,9 @@ public class YahtzeeJFrame extends JFrame {
         setDefaultCloseOperation( JFrame.EXIT_ON_CLOSE );
         setSize( 1600, 900 ); 
         cardLayout.show(mainPanel, "mainMenu");
-		for (int i = 0; i < 5; ++i){
-			dice[i] = new Dice();
-		}
     }
     private void startGame(){
 		gameBoard = new GameBoardJPanel();
-		players = new Player[numberOfPlayers];
-		for (int i = 0; i < numberOfPlayers; ++i){
-			players[i] = new Player();
-		}
 		mainPanel.add(gameBoard, "gameBoard");
         cardLayout.show(mainPanel, "gameBoard");
     }
@@ -120,27 +111,64 @@ public class YahtzeeJFrame extends JFrame {
         }
     }
     class GameBoardJPanel extends JPanel{
-		int currentPlayer = 0;
-		PlayerLabelPanel [] playerScores;
+		private int currentPlayer;
+		private Player[] players;
+		private PlayerLabelPanel [] playerScores;
+		private Dice[] dice = new Dice[5];
+		private int currRoll = 1;
+		private JButton button_aces;
+		private JButton button_twos;
+		private JButton button_threes;
+		private JButton button_fours;
+		private JButton button_fives;
+		private JButton button_sixes;
+		private JButton button_threeKind;
+		private JButton button_fourKind;
+		private JButton button_fullHouse;
+		private JButton button_smStraight;
+		private JButton button_lgStraight;
+		private JButton button_yahtzee;
+		private JButton button_chance;
+
+		JButton keep_1;
+		JButton keep_2;
+		JButton keep_3;
+		JButton keep_4;
+		JButton keep_5;
+
+		JButton roll;
+		Icon counter_icon;
+		JLabel roll_1;
+		JLabel roll_2;
+		JLabel roll_3;
+		JLabel[] diceIcons;
+
         GameBoardJPanel(){
+			players = new Player[numberOfPlayers];
+			for (int i = 0; i < numberOfPlayers; ++i){
+				players[i] = new Player();
+			}
+			for (int i = 0; i < 5; ++i){
+				dice[i] = new Dice();
+			}
 		// Set layout for the game panel
 			setLayout(new GridBagLayout());
 			GridBagConstraints gbc = new GridBagConstraints();
-			
+			currentPlayer = numberOfPlayers - 1;
         // Make labels for each of the score selections
-			JButton button_aces = new JButton("Aces");
-			JButton button_twos = new JButton("Twos");
-			JButton button_threes = new JButton("Threes");
-			JButton button_fours = new JButton("Fours");
-			JButton button_fives = new JButton("Fives");
-			JButton button_sixes = new JButton("Sixes");
-			JButton button_threeKind = new JButton("Three of a Kind");
-			JButton button_fourKind = new JButton("Four of a Kind");
-			JButton button_fullHouse = new JButton("Full House");
-			JButton button_smStraight = new JButton("Small Straight");
-			JButton button_lgStraight = new JButton("Large Straight");
-			JButton button_yahtzee = new JButton("Yahtzee");
-			JButton button_chance = new JButton("Chance");
+			button_aces = new JButton("Aces");
+			button_twos = new JButton("Twos");
+			button_threes = new JButton("Threes");
+			button_fours = new JButton("Fours");
+			button_fives = new JButton("Fives");
+			button_sixes = new JButton("Sixes");
+			button_threeKind = new JButton("Three of a Kind");
+			button_fourKind = new JButton("Four of a Kind");
+			button_fullHouse = new JButton("Full House");
+			button_smStraight = new JButton("Small Straight");
+			button_lgStraight = new JButton("Large Straight");
+			button_yahtzee = new JButton("Yahtzee");
+			button_chance = new JButton("Chance");
 			
 		// Make dice faces and keep buttons
 			ImageIcon [] diceImage = new ImageIcon[6];
@@ -156,19 +184,19 @@ public class YahtzeeJFrame extends JFrame {
 			ImageIcon dice6 = new ImageIcon( getClass().getResource( "assets/dice_6.png" ) );
 			*/
 			// Dice faces will be loaded randomly into five dice JLabels later during the roll listener 
-			JButton keep_1 = new JButton("Keep");
-			JButton keep_2 = new JButton("Keep");
-			JButton keep_3 = new JButton("Keep");
-			JButton keep_4 = new JButton("Keep");
-			JButton keep_5 = new JButton("Keep");
+			keep_1 = new JButton("Keep");
+			keep_2 = new JButton("Keep");
+			keep_3 = new JButton("Keep");
+			keep_4 = new JButton("Keep");
+			keep_5 = new JButton("Keep");
 			
 		// Make roll button and X markers
-			JButton roll = new JButton("Roll");
-			Icon counter_icon = new ImageIcon( getClass().getResource( "assets/marker.png" ) );
-			JLabel roll_1 = new JLabel(counter_icon);
-			JLabel roll_2 = new JLabel(counter_icon);
-			JLabel roll_3 = new JLabel(counter_icon);
-			JLabel[] diceIcons = new JLabel[5];
+			roll = new JButton("Roll");
+			counter_icon = new ImageIcon( getClass().getResource( "assets/marker.png" ) );
+			roll_1 = new JLabel(counter_icon);
+			roll_2 = new JLabel(counter_icon);
+			roll_3 = new JLabel(counter_icon);
+			diceIcons = new JLabel[5];
 			for (int i = 0; i < 5; ++i){
 				diceIcons[i] = new JLabel(diceImage[i]);
 			}
@@ -185,9 +213,16 @@ public class YahtzeeJFrame extends JFrame {
 			
 		// Make additional components
 			JLabel scorecard = new JLabel("Scorecard");
-			JLabel total = new JLabel ("TOTAL:");
+			JButton total = new JButton ("<html><b>Total:</b></html>");
 			JLabel curr_player = new JLabel("Player 1");
-			JLabel empty_cell = new JLabel("               ");
+			JLabel empty_cell = new JLabel("                     ");
+			JButton upperBonus = new JButton("<html><b>Upper Bonus\n(Upper Section >= 63 Pts.):</b></html>");
+			JButton upperTotal = new JButton("<html><b>Total Upper Section:</b></html>");
+			JButton yahtzeeBonus = new JButton("<html><b>Yahtzee Bonus:</b></html>");
+			upperBonus.setEnabled(false);
+			upperTotal.setEnabled(false);
+			yahtzeeBonus.setEnabled(false);
+			total.setEnabled(false);
 			
 		// Add all components
 			gbc.gridx = 0;
@@ -201,6 +236,8 @@ public class YahtzeeJFrame extends JFrame {
 			add(button_fours, gbc);
 			add(button_fives, gbc);
 			add(button_sixes, gbc);
+			add(upperBonus, gbc);
+			add(upperTotal, gbc);
 			add(button_threeKind, gbc);
 			add(button_fourKind, gbc);
 			add(button_fullHouse, gbc);
@@ -208,6 +245,7 @@ public class YahtzeeJFrame extends JFrame {
 			add(button_lgStraight, gbc);
 			add(button_yahtzee, gbc);
 			add(button_chance, gbc);
+			add(yahtzeeBonus, gbc);
 			add(total, gbc);
 			for(int j = 0; j < numberOfPlayers; j++){
 				int player_num = j+1;
@@ -216,8 +254,8 @@ public class YahtzeeJFrame extends JFrame {
 				gbc.gridheight = 1;
 				add(player_label, gbc);
 				
-				gbc.gridy = 0;
-				gbc.gridheight = 15;
+				gbc.gridy = 1;
+				gbc.gridheight = 19;
 				add(playerScores[j], gbc);
 				System.out.println("Printing player scorecard " + j);
 			}
@@ -292,7 +330,6 @@ public class YahtzeeJFrame extends JFrame {
 						force a choice and then turn is incremented and rolls reset, roll markers are set invisible again
 					*/
 					if (currRoll == 1){
-						System.out.println("Rolling 1");
 						keep_1.setEnabled(true);
 						keep_2.setEnabled(true);
 						keep_3.setEnabled(true);
@@ -307,10 +344,10 @@ public class YahtzeeJFrame extends JFrame {
 							}
 						}
 						roll_1.setVisible(true);
+						chooseScore();
 						currRoll++;
 					}
 					else if (currRoll == 2){
-						System.out.println("Rolling 2");
 						for (int i = 0; i < 5; ++i){
 							if (!(dice[i].checkKept())){
 								int newnum = rand.nextInt(6) + 1;
@@ -323,7 +360,6 @@ public class YahtzeeJFrame extends JFrame {
 						roll_2.setVisible(true);
 					}
 					else{
-						System.out.println("Roll 3");
 						for (int i = 0; i < 5; ++i){
 							if (!(dice[i].checkKept())){
 								int newnum = rand.nextInt(6) + 1;
@@ -333,7 +369,12 @@ public class YahtzeeJFrame extends JFrame {
 							}
 						}
 						roll.setEnabled(false);
-						roll_3.setVisible(true);
+						keep_1.setEnabled(false);
+						keep_2.setEnabled(false);
+						keep_3.setEnabled(false);
+						keep_4.setEnabled(false);
+						keep_5.setEnabled(false);
+						roll_3.setVisible(false);
 					}
                 }
             });
@@ -374,116 +415,321 @@ public class YahtzeeJFrame extends JFrame {
 					dice[4].setKept(true);
                 }
             });
-			
-		// Action listener for each of the 12 scorecard choices
+		// Action listener for each of the 13 scorecard choices
 			button_aces.addActionListener(new ActionListener() {
                 @Override
                 public void actionPerformed(ActionEvent e) {
-                    
+					int counter = 0;
+                    for (Dice d : dice){
+						if (d.getValue() == 1){
+							counter++;
+						}
+					}
+					players[currentPlayer].setAces(counter);
+					players[currentPlayer].addSelected(0);
+					resetTurn();
                 }
             });
 			button_twos.addActionListener(new ActionListener() {
                 @Override
                 public void actionPerformed(ActionEvent e) {
-                    
+                    int counter = 0;
+                    for (Dice d : dice){
+						if (d.getValue() == 2){
+							counter += 2;
+						}
+					}
+					players[currentPlayer].setTwos(counter);
+					players[currentPlayer].addSelected(1);
+					resetTurn();
                 }
             });
 			button_threes.addActionListener(new ActionListener() {
                 @Override
                 public void actionPerformed(ActionEvent e) {
-                    
+                    int counter = 0;
+                    for (Dice d : dice){
+						if (d.getValue() == 3){
+							counter += 3;
+						}
+					}
+					players[currentPlayer].setThrees(counter);
+					players[currentPlayer].addSelected(2);
+					resetTurn();
                 }
             });
 			button_fours.addActionListener(new ActionListener() {
                 @Override
                 public void actionPerformed(ActionEvent e) {
-                    
+                    int counter = 0;
+                    for (Dice d : dice){
+						if (d.getValue() == 4){
+							counter+=4;
+						}
+					}
+					players[currentPlayer].setFours(counter);
+					players[currentPlayer].addSelected(3);
+					resetTurn();
                 }
             });
 			button_fives.addActionListener(new ActionListener() {
                 @Override
                 public void actionPerformed(ActionEvent e) {
-                    
+                    int counter = 0;
+                    for (Dice d : dice){
+						if (d.getValue() == 5){
+							counter+=5;
+						}
+					}
+					players[currentPlayer].setFives(counter);
+					players[currentPlayer].addSelected(4);
+					resetTurn();
                 }
             });
 			button_sixes.addActionListener(new ActionListener() {
                 @Override
                 public void actionPerformed(ActionEvent e) {
-                    
+                    int counter = 0;
+                    for (Dice d : dice){
+						if (d.getValue() == 6){
+							counter+=6;
+						}
+					}
+					players[currentPlayer].setSixes(counter);
+					players[currentPlayer].addSelected(5);
+					resetTurn();
                 }
             });
 			button_threeKind.addActionListener(new ActionListener() {
                 @Override
                 public void actionPerformed(ActionEvent e) {
-                    
+					int counter = 0;
+					int[] diceCounter = new int[6];
+					for (Dice d : dice){
+						diceCounter[d.getValue() - 1]++;
+					}
+					for (int i = 0; i < 6; ++i){
+						if (diceCounter[i] == 3){
+							for (Dice d : dice){
+								counter+=d.getValue();
+							}
+						}
+					}
+					players[currentPlayer].setThreeKind(counter);
+					players[currentPlayer].addSelected(6);
+					resetTurn();
                 }
             });
 			button_fourKind.addActionListener(new ActionListener() {
                 @Override
                 public void actionPerformed(ActionEvent e) {
-                    
+                    int counter = 0;
+					int[] diceCounter = new int[6];
+					for (Dice d : dice){
+						diceCounter[d.getValue() - 1]++;
+					}
+					for (int i = 0; i < 6; ++i){
+						if (diceCounter[i] == 4){
+							for (Dice d : dice){
+								counter+=d.getValue();
+							}
+						}
+					}
+					players[currentPlayer].setFourKind(counter);
+					players[currentPlayer].addSelected(7);
+					resetTurn();
                 }
             });
 			button_fullHouse.addActionListener(new ActionListener() {
                 @Override
                 public void actionPerformed(ActionEvent e) {
-                    
+					//Full House Logic
+					int counter = 0;
+					boolean two = false;
+					boolean three = false;
+					int[] diceCounter = new int[6];
+					for (Dice d : dice){
+						diceCounter[d.getValue() - 1]++;
+					}
+					for (int i = 0; i < 6; ++i){
+						if (diceCounter[i] == 2){
+							two = true;
+						}
+						if (diceCounter[i] == 3){
+							three = true;
+						}
+					}
+					if (two == true && three == true){
+						counter = 25;
+					}
+					players[currentPlayer].setFullHouse(counter);
+					players[currentPlayer].addSelected(8);
+					resetTurn();
                 }
             });
 			button_smStraight.addActionListener(new ActionListener() {
                 @Override
                 public void actionPerformed(ActionEvent e) {
-                    
+					//Straight Logic
+					int longestStraight = 0;
+					int temp = 0;
+					int counter = 0;
+					int[] diceCounter = new int[6];
+					for (Dice d : dice){
+						diceCounter[d.getValue() - 1]++;
+					}
+					for (int i = 0; i < 6; ++i){
+						if (diceCounter[i] >= 1){
+							temp++;
+						}
+						else{
+							if (temp > longestStraight){
+								longestStraight = temp;
+							}
+							temp = 0;
+						}
+					}
+					if (temp > longestStraight){
+						longestStraight = temp;
+					}
+					if (longestStraight >= 4){
+						counter = 30;
+					}
+                    players[currentPlayer].setSmStraight(counter);
+					players[currentPlayer].addSelected(9);
+					resetTurn();
                 }
             });
 			button_lgStraight.addActionListener(new ActionListener() {
                 @Override
                 public void actionPerformed(ActionEvent e) {
-                    
+					//Straight Logic
+					int longestStraight = 0;
+					int temp = 0;
+					int counter = 0;
+					int[] diceCounter = new int[6];
+					for (Dice d : dice){
+						diceCounter[d.getValue() - 1]++;
+					}
+					for (int i = 0; i < 6; ++i){
+						if (diceCounter[i] >= 1){
+							temp++;
+						}
+						else{
+							if (temp > longestStraight){
+								longestStraight = temp;
+							}
+							temp = 0;
+						}
+					}
+					if (temp > longestStraight){
+						longestStraight = temp;
+					}
+					if (longestStraight >= 5){
+						counter = 40;
+					}
+                    players[currentPlayer].setLgStraight(counter);
+					players[currentPlayer].addSelected(10);
+					resetTurn();
                 }
             });
 			button_yahtzee.addActionListener(new ActionListener() {
                 @Override
                 public void actionPerformed(ActionEvent e) {
-                    
+					int counter = 0;
+					int[] diceCounter = new int[6];
+					for (Dice d : dice){
+						diceCounter[d.getValue() - 1]++;
+					}
+					for (int i = 0; i < 6; ++i){
+						if (diceCounter[i] == 5){
+							counter = 50;
+						}
+					}
+                    players[currentPlayer].setYahtzee(counter);
+					players[currentPlayer].addSelected(11);
+					resetTurn();
                 }
             });
 			button_chance.addActionListener(new ActionListener() {
                 @Override
                 public void actionPerformed(ActionEvent e) {
-                    
+                    int counter = 0;
+					for (Dice d : dice){
+						counter+=d.getValue();
+					}
+					players[currentPlayer].setChance(counter);
+					players[currentPlayer].addSelected(12);
+					resetTurn();
                 }
             });
+			nextPlayer();
         }
 
 		public void nextPlayer(){
+			playerScores[currentPlayer].label_aces.setText(String.format("   %d   ",players[currentPlayer].getAces()));
+			playerScores[currentPlayer].label_twos.setText(String.format("   %d   ",players[currentPlayer].getTwos()));
+			playerScores[currentPlayer].label_threes.setText(String.format("   %d   ",players[currentPlayer].getThrees()));
+			playerScores[currentPlayer].label_fours.setText(String.format("   %d   ",players[currentPlayer].getFours()));
+			playerScores[currentPlayer].label_fives.setText(String.format("   %d   ",players[currentPlayer].getFives()));
+			playerScores[currentPlayer].label_sixes.setText(String.format("   %d   ",players[currentPlayer].getSixes()));
+			playerScores[currentPlayer].label_threeKind.setText(String.format("   %d   ",players[currentPlayer].getThreeKind()));
+			playerScores[currentPlayer].label_fourKind.setText(String.format("   %d   ",players[currentPlayer].getFourKind()));
+			playerScores[currentPlayer].label_fullHouse.setText(String.format("   %d   ",players[currentPlayer].getFullHouse()));
+			playerScores[currentPlayer].label_smStraight.setText(String.format("   %d   ",players[currentPlayer].getSmStraight()));
+			playerScores[currentPlayer].label_lgStraight.setText(String.format("   %d   ",players[currentPlayer].getLgStraight()));
+			playerScores[currentPlayer].label_yahtzee.setText(String.format("   %d   ",players[currentPlayer].getYahtzee()));
+			playerScores[currentPlayer].label_chance.setText(String.format("   %d   ",players[currentPlayer].getChance()));
+			playerScores[currentPlayer].label_upperBonus.setText(String.format("   %d   ",players[currentPlayer].getUpperBonus()));
+			playerScores[currentPlayer].label_upperTotal.setText(String.format("   %d   ",players[currentPlayer].getUpper()));
+			playerScores[currentPlayer].label_yahtzeeBonus.setText(String.format("   %d   ",players[currentPlayer].getYahtzeeBonus()));
+			playerScores[currentPlayer].label_total.setText(String.format("   %d   ",players[currentPlayer].getTotal()));
+
 			currentPlayer = (currentPlayer + 1)%numberOfPlayers;
-			String temp = String.format("%d",players[currentPlayer].getAces());
-			playerScores[currentPlayer].label_aces.setText(temp);
-			temp = String.format("%d",players[currentPlayer].getTwos());
-			playerScores[currentPlayer].label_twos.setText(temp);
-			temp = String.format("%d",players[currentPlayer].getThrees());
-			playerScores[currentPlayer].label_threes.setText(temp);
-			temp = String.format("%d",players[currentPlayer].getFours());
-			playerScores[currentPlayer].label_fours.setText(temp);
-			temp = String.format("%d",players[currentPlayer].getFives());
-			playerScores[currentPlayer].label_fives.setText(temp);
-			temp = String.format("%d",players[currentPlayer].getSixes());
-			playerScores[currentPlayer].label_sixes.setText(temp);
-			temp = String.format("%d",players[currentPlayer].getThreeKind());
-			playerScores[currentPlayer].label_threeKind.setText(temp);
-			temp = String.format("%d",players[currentPlayer].getFourKind());
-			playerScores[currentPlayer].label_fourKind.setText(temp);
-			temp = String.format("%d",players[currentPlayer].getFullHouse());
-			playerScores[currentPlayer].label_fullHouse.setText(temp);
-			temp = String.format("%d",players[currentPlayer].getSmStraight());
-			playerScores[currentPlayer].label_smStraight.setText(temp);
-			temp = String.format("%d",players[currentPlayer].getLgStraight());
-			playerScores[currentPlayer].label_lgStraight.setText(temp);
-			temp = String.format("%d",players[currentPlayer].getYahtzee());
-			playerScores[currentPlayer].label_yahtzee.setText(temp);
-			temp = String.format("%d",players[currentPlayer].getChance());
-			playerScores[currentPlayer].label_chance.setText(temp);
+			button_aces.setEnabled(false);
+			button_twos.setEnabled(false);
+			button_threes.setEnabled(false);
+			button_fours.setEnabled(false);
+			button_fives.setEnabled(false);
+			button_sixes.setEnabled(false);
+			button_threeKind.setEnabled(false);
+			button_fourKind.setEnabled(false);
+			button_fullHouse.setEnabled(false);
+			button_smStraight.setEnabled(false);
+			button_lgStraight.setEnabled(false);
+			button_yahtzee.setEnabled(false);
+			button_chance.setEnabled(false);
+		}
+		public void chooseScore(){
+			button_aces.setEnabled(players[currentPlayer].checkSelected(0));
+			button_twos.setEnabled(players[currentPlayer].checkSelected(1));
+			button_threes.setEnabled(players[currentPlayer].checkSelected(2));
+			button_fours.setEnabled(players[currentPlayer].checkSelected(3));
+			button_fives.setEnabled(players[currentPlayer].checkSelected(4));
+			button_sixes.setEnabled(players[currentPlayer].checkSelected(5));
+			button_threeKind.setEnabled(players[currentPlayer].checkSelected(6));
+			button_fourKind.setEnabled(players[currentPlayer].checkSelected(7));
+			button_fullHouse.setEnabled(players[currentPlayer].checkSelected(8));
+			button_smStraight.setEnabled(players[currentPlayer].checkSelected(9));
+			button_lgStraight.setEnabled(players[currentPlayer].checkSelected(10));
+			button_yahtzee.setEnabled(players[currentPlayer].checkSelected(11));
+			button_chance.setEnabled(players[currentPlayer].checkSelected(12));
+		}
+		public void resetTurn(){
+			currRoll = 1;
+			for (Dice d: dice){
+				d.setKept(false);
+			}
+			roll.setEnabled(true);
+			keep_1.setEnabled(false);
+			keep_2.setEnabled(false);
+			keep_3.setEnabled(false);
+			keep_4.setEnabled(false);
+			keep_5.setEnabled(false);
+			roll_1.setVisible(false);
+			roll_2.setVisible(false);
+			roll_3.setVisible(false);
+			nextPlayer();
 		}
 		
     }
@@ -502,9 +748,13 @@ public class YahtzeeJFrame extends JFrame {
 		JLabel label_lgStraight;
 		JLabel label_yahtzee;
 		JLabel label_chance;
+		JLabel label_upperBonus;
+		JLabel label_upperTotal;
+		JLabel label_yahtzeeBonus;
+		JLabel label_total;
 
 		PlayerLabelPanel(){
-			String unselected = "  XX  ";
+			String unselected = "   0   ";
 			setLayout(new GridBagLayout());
 			GridBagConstraints label_gbc = new GridBagConstraints();
 			// Make empty labels for each option
@@ -521,6 +771,10 @@ public class YahtzeeJFrame extends JFrame {
 			label_lgStraight = new JLabel(unselected);
 			label_yahtzee = new JLabel(unselected);
 			label_chance = new JLabel(unselected);
+			label_upperBonus = new JLabel(unselected);
+			label_upperTotal = new JLabel(unselected);
+			label_yahtzeeBonus = new JLabel(unselected);
+			label_total = new JLabel(unselected);
 			// Add components
 			label_gbc.gridx = 0;
 			label_gbc.gridy = 1;
@@ -532,6 +786,8 @@ public class YahtzeeJFrame extends JFrame {
 			add(label_fours, label_gbc);
 			add(label_fives, label_gbc);
 			add(label_sixes, label_gbc);
+			add(label_upperBonus, label_gbc);
+			add(label_upperTotal,label_gbc);
 			add(label_threeKind, label_gbc);
 			add(label_fourKind, label_gbc);
 			add(label_fullHouse, label_gbc);
@@ -539,6 +795,8 @@ public class YahtzeeJFrame extends JFrame {
 			add(label_lgStraight, label_gbc);
 			add(label_yahtzee, label_gbc);
 			add(label_chance, label_gbc);
+			add(label_yahtzeeBonus, label_gbc);
+			add(label_total, label_gbc);
 		}
 	}
 }

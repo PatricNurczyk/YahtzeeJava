@@ -6,6 +6,7 @@ public class Player {
     private int fours;
     private int fives;
     private int sixes;
+    private int upperBonus;
     //Lower Section
     private int threeKind;
     private int fourKind;
@@ -14,6 +15,10 @@ public class Player {
     private int lgStraight;
     private int yahtzee;
     private int chance;
+    private int yahtzeeBonus;
+
+    //Upper Section selected
+    private boolean [] selected;
 
     public Player(){
         aces = 0;
@@ -22,6 +27,7 @@ public class Player {
         fours = 0;
         fives = 0;
         sixes = 0;
+        upperBonus = 0;
         threeKind = 0;
         fourKind = 0;
         fullHouse = 0;
@@ -29,6 +35,11 @@ public class Player {
         lgStraight = 0;
         yahtzee = 0;
         chance = 0;
+        yahtzeeBonus = 0;
+        selected = new boolean[13];
+        for (int i = 0; i < 13; ++i){
+            selected[i] = true;
+        }
     }
 
     // Getters
@@ -71,10 +82,22 @@ public class Player {
     public int getChance() {
         return chance;
     }
+    public int getUpperBonus(){
+        return upperBonus;
+    }
+    public int getYahtzeeBonus(){
+        return yahtzeeBonus;
+    }
+    public int getUpper() {
+        return aces + twos + threes + fours + fives + sixes + upperBonus;
+    }
+    public int getLower() {
+        return threeKind + fourKind + fullHouse +
+               smStraight + lgStraight + yahtzee + chance + yahtzeeBonus;
+    }
+
     public int getTotal() {
-        return aces + twos + threes + fours + fives + sixes +
-               threeKind + fourKind + fullHouse +
-               smStraight + lgStraight + yahtzee + chance;
+        return getUpper() + getLower();
     }
     // Setters
     public void setAces(int aces) {
@@ -115,5 +138,19 @@ public class Player {
     }
     public void setChance(int chance) {
         this.chance = chance;
+    }
+
+    public void addSelected(int i){
+        this.selected[i] = false;
+    }
+
+    public boolean checkSelected(int i){
+        return this.selected[i];
+    }
+
+    public void resetSelected(){
+        for (int i = 0; i < 13; ++i){
+            this.selected[i] = true;
+        }
     }
 }
