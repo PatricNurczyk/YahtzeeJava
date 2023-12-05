@@ -10,6 +10,9 @@ public class YahtzeeJFrame extends JFrame {
     private GameBoardJPanel gameBoard;
     private CardLayout cardLayout;
     private JPanel mainPanel;
+	private Dice[] dice = new Dice[5];
+	private Player[] players;
+	private int currRoll = 1;
     YahtzeeJFrame(){
         super("Yahtzee");
         mainMenu = new MainMenuJPanel();
@@ -21,9 +24,16 @@ public class YahtzeeJFrame extends JFrame {
         setDefaultCloseOperation( JFrame.EXIT_ON_CLOSE );
         setSize( 1600, 900 ); 
         cardLayout.show(mainPanel, "mainMenu");
+		for (int i = 0; i < 5; ++i){
+			dice[i] = new Dice();
+		}
     }
     private void startGame(){
 		gameBoard = new GameBoardJPanel();
+		players = new Player[numberOfPlayers];
+		for (int i = 0; i < numberOfPlayers; ++i){
+			players[i] = new Player();
+		}
 		mainPanel.add(gameBoard, "gameBoard");
         cardLayout.show(mainPanel, "gameBoard");
     }
@@ -110,6 +120,8 @@ public class YahtzeeJFrame extends JFrame {
         }
     }
     class GameBoardJPanel extends JPanel{
+		int currentPlayer = 0;
+		PlayerLabelPanel [] playerScores;
         GameBoardJPanel(){
 		// Set layout for the game panel
 			setLayout(new GridBagLayout());
@@ -128,14 +140,21 @@ public class YahtzeeJFrame extends JFrame {
 			JButton button_smStraight = new JButton("Small Straight");
 			JButton button_lgStraight = new JButton("Large Straight");
 			JButton button_yahtzee = new JButton("Yahtzee");
+			JButton button_chance = new JButton("Chance");
 			
 		// Make dice faces and keep buttons
+			ImageIcon [] diceImage = new ImageIcon[6];
+			for (int i = 1; i <= 6; ++i){
+				diceImage[i-1] = new ImageIcon( getClass().getResource(String.format("assets/dice_%d.png",i)));
+			}
+			/*
 			ImageIcon dice1 = new ImageIcon( getClass().getResource( "assets/dice_1.png" ) );
 			ImageIcon dice2 = new ImageIcon( getClass().getResource( "assets/dice_2.png" ) );
 			ImageIcon dice3 = new ImageIcon( getClass().getResource( "assets/dice_3.png" ) );
 			ImageIcon dice4 = new ImageIcon( getClass().getResource( "assets/dice_4.png" ) );
 			ImageIcon dice5 = new ImageIcon( getClass().getResource( "assets/dice_5.png" ) );
 			ImageIcon dice6 = new ImageIcon( getClass().getResource( "assets/dice_6.png" ) );
+			*/
 			// Dice faces will be loaded randomly into five dice JLabels later during the roll listener 
 			JButton keep_1 = new JButton("Keep");
 			JButton keep_2 = new JButton("Keep");
@@ -149,12 +168,16 @@ public class YahtzeeJFrame extends JFrame {
 			JLabel roll_1 = new JLabel(counter_icon);
 			JLabel roll_2 = new JLabel(counter_icon);
 			JLabel roll_3 = new JLabel(counter_icon);
-			roll_1.setVisible(true);
-			roll_2.setVisible(true);
-			roll_3.setVisible(true);
+			JLabel[] diceIcons = new JLabel[5];
+			for (int i = 0; i < 5; ++i){
+				diceIcons[i] = new JLabel(diceImage[i]);
+			}
+  			roll_1.setVisible(false);
+			roll_2.setVisible(false);
+			roll_3.setVisible(false);
 			
 		// Make player scorecard button columns
-			PlayerLabelPanel [] playerScores = new PlayerLabelPanel[numberOfPlayers];
+			playerScores = new PlayerLabelPanel[numberOfPlayers];
 			for(int i = 0; i < numberOfPlayers; i++){
 				playerScores[i] = new PlayerLabelPanel();
 				playerScores[i].setBorder(BorderFactory.createLineBorder(Color.BLACK));
@@ -184,6 +207,7 @@ public class YahtzeeJFrame extends JFrame {
 			add(button_smStraight, gbc);
 			add(button_lgStraight, gbc);
 			add(button_yahtzee, gbc);
+			add(button_chance, gbc);
 			add(total, gbc);
 			for(int j = 0; j < numberOfPlayers; j++){
 				int player_num = j+1;
@@ -193,49 +217,61 @@ public class YahtzeeJFrame extends JFrame {
 				add(player_label, gbc);
 				
 				gbc.gridy = 0;
-				gbc.gridheight = 14;
+				gbc.gridheight = 15;
 				add(playerScores[j], gbc);
 				System.out.println("Printing player scorecard " + j);
 			}
+
 			int offset = numberOfPlayers + 1;	// Used for spacing components to the right of scorecard
 			gbc.gridx = offset + 1;
 			gbc.gridy = 0;
 			add(empty_cell, gbc);
 			
 			gbc.gridx = offset + 3;
-			gbc.gridy = 8;
+			gbc.gridy = 10;
 			add(roll_1, gbc);
 			
 			gbc.gridx = offset + 4;
-			gbc.gridy = 8;
+			gbc.gridy = 10;
 			add(roll_2, gbc);
 			
 			gbc.gridx = offset + 5;
-			gbc.gridy = 8;
+			gbc.gridy = 10;
 			add(roll_3, gbc);
 			
 			gbc.gridx = offset + 4;
-			gbc.gridy = 5;
+			gbc.gridy = 7;
 			add(roll, gbc);
+
+			for (int i = 0; i < 5; ++i){
+				gbc.gridx = offset + 2 + i;
+				gbc.gridy = 4;
+				add(diceIcons[i], gbc);
+			}
 			
 			gbc.gridx = offset + 2;
-			gbc.gridy = 2;
+			gbc.gridy = 0;
+			keep_1.setEnabled(false);
 			add(keep_1, gbc);
 			
 			gbc.gridx = offset + 3;
-			gbc.gridy = 2;
+			gbc.gridy = 0;
+			keep_2.setEnabled(false);
 			add(keep_2, gbc);
 			
 			gbc.gridx = offset + 4;
-			gbc.gridy = 2;
+			gbc.gridy = 0;
+			keep_3.setEnabled(false);
 			add(keep_3, gbc);
 			
 			gbc.gridx = offset + 5;
-			gbc.gridy = 2;
+			gbc.gridy = 0;
+			keep_4.setEnabled(false);
 			add(keep_4, gbc);
 			
 			gbc.gridx = offset + 6;
-			gbc.gridy = 2;
+			gbc.gridy = 0;
+			keep_5.setEnabled(false);
 			add(keep_5, gbc);
 			
 		// Action listener for the Roll button, 
@@ -255,6 +291,50 @@ public class YahtzeeJFrame extends JFrame {
 						then roll_3 is set visible
 						force a choice and then turn is incremented and rolls reset, roll markers are set invisible again
 					*/
+					if (currRoll == 1){
+						System.out.println("Rolling 1");
+						keep_1.setEnabled(true);
+						keep_2.setEnabled(true);
+						keep_3.setEnabled(true);
+						keep_4.setEnabled(true);
+						keep_5.setEnabled(true);
+						for (int i = 0; i < 5; ++i){
+							if (!(dice[i].checkKept())){
+								int newnum = rand.nextInt(6) + 1;
+								dice[i].setValue(newnum);
+								diceIcons[i].setIcon(diceImage[newnum - 1]);
+
+							}
+						}
+						roll_1.setVisible(true);
+						currRoll++;
+					}
+					else if (currRoll == 2){
+						System.out.println("Rolling 2");
+						for (int i = 0; i < 5; ++i){
+							if (!(dice[i].checkKept())){
+								int newnum = rand.nextInt(6) + 1;
+								dice[i].setValue(newnum);
+								diceIcons[i].setIcon(diceImage[newnum - 1]);
+
+							}
+						}
+						currRoll++;
+						roll_2.setVisible(true);
+					}
+					else{
+						System.out.println("Roll 3");
+						for (int i = 0; i < 5; ++i){
+							if (!(dice[i].checkKept())){
+								int newnum = rand.nextInt(6) + 1;
+								dice[i].setValue(newnum);
+								diceIcons[i].setIcon(diceImage[newnum - 1]);
+
+							}
+						}
+						roll.setEnabled(false);
+						roll_3.setVisible(true);
+					}
                 }
             });
 			
@@ -262,31 +342,36 @@ public class YahtzeeJFrame extends JFrame {
 			keep_1.addActionListener(new ActionListener() {
                 @Override
                 public void actionPerformed(ActionEvent e) {
-                    
+                    keep_1.setEnabled(false);
+					dice[0].setKept(true);
                 }
             });
 			keep_2.addActionListener(new ActionListener() {
                 @Override
                 public void actionPerformed(ActionEvent e) {
-                    
+                    keep_2.setEnabled(false);
+					dice[1].setKept(true);
                 }
             });
 			keep_3.addActionListener(new ActionListener() {
                 @Override
                 public void actionPerformed(ActionEvent e) {
-                    
+                    keep_3.setEnabled(false);
+					dice[2].setKept(true);
                 }
             });
 			keep_4.addActionListener(new ActionListener() {
                 @Override
                 public void actionPerformed(ActionEvent e) {
-                    
+                    keep_4.setEnabled(false);
+					dice[3].setKept(true);
                 }
             });
 			keep_5.addActionListener(new ActionListener() {
                 @Override
                 public void actionPerformed(ActionEvent e) {
-                    
+                    keep_5.setEnabled(false);
+					dice[4].setKept(true);
                 }
             });
 			
@@ -363,26 +448,79 @@ public class YahtzeeJFrame extends JFrame {
                     
                 }
             });
+			button_chance.addActionListener(new ActionListener() {
+                @Override
+                public void actionPerformed(ActionEvent e) {
+                    
+                }
+            });
         }
+
+		public void nextPlayer(){
+			currentPlayer = (currentPlayer + 1)%numberOfPlayers;
+			String temp = String.format("%d",players[currentPlayer].getAces());
+			playerScores[currentPlayer].label_aces.setText(temp);
+			temp = String.format("%d",players[currentPlayer].getTwos());
+			playerScores[currentPlayer].label_twos.setText(temp);
+			temp = String.format("%d",players[currentPlayer].getThrees());
+			playerScores[currentPlayer].label_threes.setText(temp);
+			temp = String.format("%d",players[currentPlayer].getFours());
+			playerScores[currentPlayer].label_fours.setText(temp);
+			temp = String.format("%d",players[currentPlayer].getFives());
+			playerScores[currentPlayer].label_fives.setText(temp);
+			temp = String.format("%d",players[currentPlayer].getSixes());
+			playerScores[currentPlayer].label_sixes.setText(temp);
+			temp = String.format("%d",players[currentPlayer].getThreeKind());
+			playerScores[currentPlayer].label_threeKind.setText(temp);
+			temp = String.format("%d",players[currentPlayer].getFourKind());
+			playerScores[currentPlayer].label_fourKind.setText(temp);
+			temp = String.format("%d",players[currentPlayer].getFullHouse());
+			playerScores[currentPlayer].label_fullHouse.setText(temp);
+			temp = String.format("%d",players[currentPlayer].getSmStraight());
+			playerScores[currentPlayer].label_smStraight.setText(temp);
+			temp = String.format("%d",players[currentPlayer].getLgStraight());
+			playerScores[currentPlayer].label_lgStraight.setText(temp);
+			temp = String.format("%d",players[currentPlayer].getYahtzee());
+			playerScores[currentPlayer].label_yahtzee.setText(temp);
+			temp = String.format("%d",players[currentPlayer].getChance());
+			playerScores[currentPlayer].label_chance.setText(temp);
+		}
+		
     }
 	class PlayerLabelPanel extends JPanel{
+
+		JLabel label_aces;
+		JLabel label_twos;
+		JLabel label_threes;
+		JLabel label_fours;
+		JLabel label_fives;
+		JLabel label_sixes;
+		JLabel label_threeKind;
+		JLabel label_fourKind;
+		JLabel label_fullHouse;
+		JLabel label_smStraight;
+		JLabel label_lgStraight;
+		JLabel label_yahtzee;
+		JLabel label_chance;
+
 		PlayerLabelPanel(){
 			String unselected = "  XX  ";
 			setLayout(new GridBagLayout());
 			GridBagConstraints label_gbc = new GridBagConstraints();
 			// Make empty labels for each option
-			JLabel label_aces = new JLabel(unselected);
-			JLabel label_twos = new JLabel(unselected);
-			JLabel label_threes = new JLabel(unselected);
-			JLabel label_fours = new JLabel(unselected);
-			JLabel label_fives = new JLabel(unselected);
-			JLabel label_sixes = new JLabel(unselected);
-			JLabel label_threeKind = new JLabel(unselected);
-			JLabel label_fourKind = new JLabel(unselected);
-			JLabel label_fullHouse = new JLabel(unselected);
-			JLabel label_smStraight = new JLabel(unselected);
-			JLabel label_lgStraight = new JLabel(unselected);
-			JLabel label_yahtzee = new JLabel(unselected);
+			label_aces = new JLabel(unselected);
+			label_twos = new JLabel(unselected);
+			label_threes = new JLabel(unselected);
+			label_fours = new JLabel(unselected);
+			label_fives = new JLabel(unselected);
+			label_sixes = new JLabel(unselected);
+			label_threeKind = new JLabel(unselected);
+			label_fourKind = new JLabel(unselected);
+			label_fullHouse = new JLabel(unselected);
+			label_smStraight = new JLabel(unselected);
+			label_lgStraight = new JLabel(unselected);
+			label_yahtzee = new JLabel(unselected);
+			label_chance = new JLabel(unselected);
 			// Add components
 			label_gbc.gridx = 0;
 			label_gbc.gridy = 1;
@@ -400,6 +538,7 @@ public class YahtzeeJFrame extends JFrame {
 			add(label_smStraight, label_gbc);
 			add(label_lgStraight, label_gbc);
 			add(label_yahtzee, label_gbc);
+			add(label_chance, label_gbc);
 		}
 	}
 }

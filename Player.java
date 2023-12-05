@@ -1,18 +1,35 @@
 public class Player {
     //Upper Section
-    private int aces = 0;
-    private int twos = 0;
-    private int threes = 0;
-    private int fours = 0;
-    private int fives = 0;
-    private int sixes = 0;
+    private int aces;
+    private int twos;
+    private int threes;
+    private int fours;
+    private int fives;
+    private int sixes;
     //Lower Section
-    private int threeKind = 0;
-    private int fourKind = 0;
-    private int fullHouse = 0;
-    private int smStraight = 0;
-    private int lgStraight = 0;
-    private int yahtzee = 0;
+    private int threeKind;
+    private int fourKind;
+    private int fullHouse;
+    private int smStraight;
+    private int lgStraight;
+    private int yahtzee;
+    private int chance;
+
+    public Player(){
+        aces = 0;
+        twos = 0;
+        threes = 0;
+        fours = 0;
+        fives = 0;
+        sixes = 0;
+        threeKind = 0;
+        fourKind = 0;
+        fullHouse = 0;
+        smStraight = 0;
+        lgStraight = 0;
+        yahtzee = 0;
+        chance = 0;
+    }
 
     // Getters
     public int getAces() {
@@ -51,10 +68,13 @@ public class Player {
     public int getYahtzee() {
         return yahtzee;
     }
+    public int getChance() {
+        return chance;
+    }
     public int getTotal() {
         return aces + twos + threes + fours + fives + sixes +
                threeKind + fourKind + fullHouse +
-               smStraight + lgStraight + yahtzee;
+               smStraight + lgStraight + yahtzee + chance;
     }
     // Setters
     public void setAces(int aces) {
@@ -92,5 +112,8 @@ public class Player {
     }
     public void setYahtzee(int yahtzee) {
         this.yahtzee = yahtzee;
+    }
+    public void setChance(int chance) {
+        this.chance = chance;
     }
 }
