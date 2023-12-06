@@ -112,10 +112,14 @@ public class YahtzeeJFrame extends JFrame {
     }
     class GameBoardJPanel extends JPanel{
 		private int currentPlayer;
+		private int currentPlayerCounter;
+		private int winningPlayer = 0;
+		private int totalTurns = 0;
 		private Player[] players;
 		private PlayerLabelPanel [] playerScores;
 		private Dice[] dice = new Dice[5];
 		private int currRoll = 1;
+		private JLabel playerTurnLabel;
 		private JButton button_aces;
 		private JButton button_twos;
 		private JButton button_threes;
@@ -129,6 +133,7 @@ public class YahtzeeJFrame extends JFrame {
 		private JButton button_lgStraight;
 		private JButton button_yahtzee;
 		private JButton button_chance;
+		private boolean isTie;
 
 		JButton keep_1;
 		JButton keep_2;
@@ -154,8 +159,9 @@ public class YahtzeeJFrame extends JFrame {
 		// Set layout for the game panel
 			setLayout(new GridBagLayout());
 			GridBagConstraints gbc = new GridBagConstraints();
-			currentPlayer = numberOfPlayers - 1;
-        // Make labels for each of the score selections
+			currentPlayer = 0; //numberOfPlayers - 1
+			currentPlayerCounter = 1;
+        // Make buttons for each of the score selections
 			button_aces = new JButton("Aces");
 			button_twos = new JButton("Twos");
 			button_threes = new JButton("Threes");
@@ -170,20 +176,25 @@ public class YahtzeeJFrame extends JFrame {
 			button_yahtzee = new JButton("Yahtzee");
 			button_chance = new JButton("Chance");
 			
+			button_aces.setEnabled(false);
+			button_twos.setEnabled(false);
+			button_threes.setEnabled(false);
+			button_fours.setEnabled(false);
+			button_fives.setEnabled(false);
+			button_sixes.setEnabled(false);
+			button_threeKind.setEnabled(false);
+			button_fourKind.setEnabled(false);
+			button_fullHouse.setEnabled(false);
+			button_smStraight.setEnabled(false);
+			button_lgStraight.setEnabled(false);
+			button_yahtzee.setEnabled(false);
+			button_chance.setEnabled(false);
+			
 		// Make dice faces and keep buttons
 			ImageIcon [] diceImage = new ImageIcon[6];
 			for (int i = 1; i <= 6; ++i){
 				diceImage[i-1] = new ImageIcon( getClass().getResource(String.format("assets/dice_%d.png",i)));
 			}
-			/*
-			ImageIcon dice1 = new ImageIcon( getClass().getResource( "assets/dice_1.png" ) );
-			ImageIcon dice2 = new ImageIcon( getClass().getResource( "assets/dice_2.png" ) );
-			ImageIcon dice3 = new ImageIcon( getClass().getResource( "assets/dice_3.png" ) );
-			ImageIcon dice4 = new ImageIcon( getClass().getResource( "assets/dice_4.png" ) );
-			ImageIcon dice5 = new ImageIcon( getClass().getResource( "assets/dice_5.png" ) );
-			ImageIcon dice6 = new ImageIcon( getClass().getResource( "assets/dice_6.png" ) );
-			*/
-			// Dice faces will be loaded randomly into five dice JLabels later during the roll listener 
 			keep_1 = new JButton("Keep");
 			keep_2 = new JButton("Keep");
 			keep_3 = new JButton("Keep");
@@ -214,8 +225,8 @@ public class YahtzeeJFrame extends JFrame {
 		// Make additional components
 			JLabel scorecard = new JLabel("Scorecard");
 			JButton total = new JButton ("<html><b>Total:</b></html>");
-			JLabel curr_player = new JLabel("Player 1");
 			JLabel empty_cell = new JLabel("                     ");
+			playerTurnLabel = new JLabel();
 			JButton upperBonus = new JButton("<html><b>Upper Bonus\n(Upper Section >= 63 Pts.):</b></html>");
 			JButton upperTotal = new JButton("<html><b>Total Upper Section:</b></html>");
 			JButton yahtzeeBonus = new JButton("<html><b>Yahtzee Bonus:</b></html>");
@@ -223,6 +234,10 @@ public class YahtzeeJFrame extends JFrame {
 			upperTotal.setEnabled(false);
 			yahtzeeBonus.setEnabled(false);
 			total.setEnabled(false);
+			if(numberOfPlayers == 1)
+				playerTurnLabel = new JLabel();
+			else
+				playerTurnLabel = new JLabel(String.format("Turn: Player %d", currentPlayerCounter));
 			
 		// Add all components
 			gbc.gridx = 0;
@@ -251,9 +266,10 @@ public class YahtzeeJFrame extends JFrame {
 				int player_num = j+1;
 				JLabel player_label = new JLabel("P" + player_num);
 				gbc.gridx = j + 1;
+				gbc.gridy = 0;
 				gbc.gridheight = 1;
 				add(player_label, gbc);
-				
+
 				gbc.gridy = 1;
 				gbc.gridheight = 19;
 				add(playerScores[j], gbc);
@@ -266,69 +282,80 @@ public class YahtzeeJFrame extends JFrame {
 			add(empty_cell, gbc);
 			
 			gbc.gridx = offset + 3;
-			gbc.gridy = 10;
+			gbc.gridy = 11;
 			add(roll_1, gbc);
 			
 			gbc.gridx = offset + 4;
-			gbc.gridy = 10;
+			gbc.gridy = 11;
 			add(roll_2, gbc);
 			
 			gbc.gridx = offset + 5;
-			gbc.gridy = 10;
+			gbc.gridy = 11;
 			add(roll_3, gbc);
 			
 			gbc.gridx = offset + 4;
-			gbc.gridy = 7;
+			gbc.gridy = 8;
 			add(roll, gbc);
 
 			for (int i = 0; i < 5; ++i){
 				gbc.gridx = offset + 2 + i;
-				gbc.gridy = 4;
+				gbc.gridy = 5;
 				add(diceIcons[i], gbc);
 			}
 			
 			gbc.gridx = offset + 2;
-			gbc.gridy = 0;
+			gbc.gridy = 2;
 			keep_1.setEnabled(false);
 			add(keep_1, gbc);
 			
 			gbc.gridx = offset + 3;
-			gbc.gridy = 0;
+			gbc.gridy = 2;
 			keep_2.setEnabled(false);
 			add(keep_2, gbc);
 			
 			gbc.gridx = offset + 4;
-			gbc.gridy = 0;
+			gbc.gridy = 2;
 			keep_3.setEnabled(false);
 			add(keep_3, gbc);
 			
 			gbc.gridx = offset + 5;
-			gbc.gridy = 0;
+			gbc.gridy = 2;
 			keep_4.setEnabled(false);
 			add(keep_4, gbc);
 			
 			gbc.gridx = offset + 6;
-			gbc.gridy = 0;
+			gbc.gridy = 2;
 			keep_5.setEnabled(false);
 			add(keep_5, gbc);
+			
+			gbc.gridx = offset + 2;
+			gbc.gridwidth = 3;
+			gbc.anchor = GridBagConstraints.CENTER;
+			gbc.gridy = 0;
+			add(playerTurnLabel, gbc);
 			
 		// Action listener for the Roll button, 
 			roll.addActionListener(new ActionListener() {
                 @Override
                 public void actionPerformed(ActionEvent e) {
-                    // Rolls an amount of random dice values equal to (6 - how many dice are being kept)
+                    // Rolls an amount of random dice values
 					Random rand = new Random();
 					
-					// Adds to reroll_counter, which the visual roll indicators are dependent on
-					/*
-					if(first roll)
-						then roll_1 is set visible
-					if(second roll)
-						then roll_2 is set visible
-					if(third roll)
-						then roll_3 is set visible
-						force a choice and then turn is incremented and rolls reset, roll markers are set invisible again
-					*/
+					if(totalTurns == 0){
+						button_aces.setEnabled(true);
+						button_twos.setEnabled(true);
+						button_threes.setEnabled(true);
+						button_fours.setEnabled(true);
+						button_fives.setEnabled(true);
+						button_sixes.setEnabled(true);
+						button_threeKind.setEnabled(true);
+						button_fourKind.setEnabled(true);
+						button_fullHouse.setEnabled(true);
+						button_smStraight.setEnabled(true);
+						button_lgStraight.setEnabled(true);
+						button_yahtzee.setEnabled(true);
+						button_chance.setEnabled(true);
+					}
 					if (currRoll == 1){
 						keep_1.setEnabled(true);
 						keep_2.setEnabled(true);
@@ -374,7 +401,7 @@ public class YahtzeeJFrame extends JFrame {
 						keep_3.setEnabled(false);
 						keep_4.setEnabled(false);
 						keep_5.setEnabled(false);
-						roll_3.setVisible(false);
+						roll_3.setVisible(true);
 					}
                 }
             });
@@ -663,7 +690,7 @@ public class YahtzeeJFrame extends JFrame {
 					resetTurn();
                 }
             });
-			nextPlayer();
+			// End of game
         }
 
 		public void nextPlayer(){
@@ -686,6 +713,7 @@ public class YahtzeeJFrame extends JFrame {
 			playerScores[currentPlayer].label_total.setText(String.format("   %d   ",players[currentPlayer].getTotal()));
 
 			currentPlayer = (currentPlayer + 1)%numberOfPlayers;
+			totalTurns++;
 			button_aces.setEnabled(false);
 			button_twos.setEnabled(false);
 			button_threes.setEnabled(false);
@@ -730,8 +758,50 @@ public class YahtzeeJFrame extends JFrame {
 			roll_2.setVisible(false);
 			roll_3.setVisible(false);
 			nextPlayer();
+			if(numberOfPlayers == 1)
+				playerTurnLabel.setVisible(false);
+			else{
+				if(totalTurns == 0){
+					currentPlayerCounter = 1;
+					playerTurnLabel.setText(String.format("Turn: Player %d", currentPlayerCounter));
+				}
+				else{
+					currentPlayerCounter = totalTurns%(numberOfPlayers) + 1;
+					playerTurnLabel.setText(String.format("Turn: Player %d", currentPlayerCounter));
+				}
+			}
+			// End game condition
+			if(totalTurns == (13 * numberOfPlayers)){
+				// Singleplayer
+				if(numberOfPlayers == 1){
+					playerTurnLabel.setVisible(true);
+					playerTurnLabel.setText(String.format("Your score: %d", players[currentPlayer].getTotal()));
+				}
+				// Multiplayer
+				else{
+					// Find highest score
+					int [] finalScores = new int[numberOfPlayers];
+					for(int m = 0; m < numberOfPlayers; m++){
+						finalScores[m] = players[m].getTotal();
+					}
+					for(int n = 0; n < numberOfPlayers; n++){
+						if(finalScores[n] > finalScores[winningPlayer]){
+							winningPlayer = n;
+							isTie = false;
+							/*if(finalScores[n] == finalScores[winningPlayer]){
+								isTie = true;
+							}*/
+						}
+					}
+					if(!isTie)
+						playerTurnLabel.setText(String.format("Winner is Player %d with score of %d", (winningPlayer + 1), players[winningPlayer].getTotal()));
+					else
+						playerTurnLabel.setText(String.format("Winning score was a tie!"));
+				}
+				roll.setEnabled(false);
+				// Game has ended
+			}
 		}
-		
     }
 	class PlayerLabelPanel extends JPanel{
 
@@ -777,7 +847,7 @@ public class YahtzeeJFrame extends JFrame {
 			label_total = new JLabel(unselected);
 			// Add components
 			label_gbc.gridx = 0;
-			label_gbc.gridy = 1;
+			label_gbc.gridy = 0;
 			label_gbc.gridy = GridBagConstraints.RELATIVE;
 			label_gbc.ipady = 10;
 			add(label_aces, label_gbc);

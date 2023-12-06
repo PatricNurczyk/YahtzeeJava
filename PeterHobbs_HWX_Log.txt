@@ -1,0 +1,23 @@
+Contributions for COP3252 Yahtzee Project: Peter Hobbs
+
+12/3:
+Reworked startGame logic so scorecards would generate after number of players has been determined (can be reworked if this is a problem - moving gameboard generation from 
+startGame method back up to the beginning where they were originally, and changing the logic for when/how many players there are initially)
+
+GameBoardJPanel - 
+	Made the buttons, labels, and icons for game GUI
+	Added components onto game panel (except for dice faces and keep buttons; roll markers are on there but just invisible)
+	Made a class for player scorecard displays (PlayerLabelPanel) so that the addition of more players (and implementing turns) can be a bit easier
+	Made action listeners for each of the roll, keep dice, and score selection buttons - (logic still to be implemented)
+	
+	
+12/6:
+	Added win conditions (still working on tie condition enabling properly)
+	Added (player turn / who won / final score) label to the GUI
+	Implemented turn system within method resetTurn and changed behavior on how it's called within 
+	Respaced the GUI to fit the turn label
+	Changed when buttons are enabled or disabled based on turns	
+	Fixed roll counter to show all three X's on the third roll
+	Fixed the multiplayer "P2"+ labels to show up in the right spot
+	Moved around some of the counters throughout resetTurn, nextPlayer, and buttons to count turns at the right times
+	
