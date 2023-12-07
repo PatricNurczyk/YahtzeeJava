@@ -118,6 +118,10 @@ public class Player {
     public void setSixes(int sixes) {
         this.sixes = sixes;
     }
+
+    public void setUpperBonus(){
+        this.upperBonus = 35;
+    }
     public void setThreeKind(int threeKind) {
         this.threeKind = threeKind;
     }
@@ -136,6 +140,10 @@ public class Player {
     public void setYahtzee(int yahtzee) {
         this.yahtzee = yahtzee;
     }
+
+    public void yahtzeeBonus(){
+        this.yahtzeeBonus += 100;
+    }
     public void setChance(int chance) {
         this.chance = chance;
     }
@@ -146,11 +154,5 @@ public class Player {
 
     public boolean checkSelected(int i){
         return this.selected[i];
-    }
-
-    public void resetSelected(){
-        for (int i = 0; i < 13; ++i){
-            this.selected[i] = true;
-        }
     }
 }

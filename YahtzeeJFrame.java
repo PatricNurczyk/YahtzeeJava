@@ -3,6 +3,7 @@ import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.Random;
+import javax.swing.border.EmptyBorder;
 
 public class YahtzeeJFrame extends JFrame {
     private int numberOfPlayers = 2;
@@ -28,6 +29,15 @@ public class YahtzeeJFrame extends JFrame {
 		mainPanel.add(gameBoard, "gameBoard");
         cardLayout.show(mainPanel, "gameBoard");
     }
+	private void returnGame(){
+		numberOfPlayers = 2;
+		cardLayout.show(mainPanel, "mainMenu");
+		setJMenuBar(null);
+	}
+	private void restartGame(){
+		cardLayout.show(mainPanel, "mainMenu");
+		startGame();
+	}
     class MainMenuJPanel extends JPanel{
         public MainMenuJPanel() {
             // Set layout for the panel
@@ -115,9 +125,11 @@ public class YahtzeeJFrame extends JFrame {
 		private int currentPlayerCounter;
 		private int winningPlayer = 0;
 		private int totalTurns = 0;
+		private boolean joker = false;
 		private Player[] players;
 		private PlayerLabelPanel [] playerScores;
 		private Dice[] dice = new Dice[5];
+		ImageIcon [] diceImage;
 		private int currRoll = 1;
 		private JLabel playerTurnLabel;
 		private JButton button_aces;
@@ -134,6 +146,9 @@ public class YahtzeeJFrame extends JFrame {
 		private JButton button_yahtzee;
 		private JButton button_chance;
 		private boolean isTie;
+		private static JMenuBar menuBar;
+		private static JMenu menu;
+		private static JMenuItem restart, returnToMenu;
 
 		JButton keep_1;
 		JButton keep_2;
@@ -148,7 +163,23 @@ public class YahtzeeJFrame extends JFrame {
 		JLabel roll_3;
 		JLabel[] diceIcons;
 
+		GameBoardActionListener e;
+
         GameBoardJPanel(){
+			e = new GameBoardActionListener();
+			menuBar = new JMenuBar();
+			menu = new JMenu("Options");
+			restart = new JMenuItem("Restart Game");
+			restart.setActionCommand("Restart");
+			restart.addActionListener(e);
+			returnToMenu = new JMenuItem("Return To Menu");
+			returnToMenu.setActionCommand("Return");
+			returnToMenu.addActionListener(e);
+			menu.add(restart);
+			menu.add(returnToMenu);
+			menuBar.add(menu);
+			setJMenuBar(menuBar);
+
 			players = new Player[numberOfPlayers];
 			for (int i = 0; i < numberOfPlayers; ++i){
 				players[i] = new Player();
@@ -191,7 +222,7 @@ public class YahtzeeJFrame extends JFrame {
 			button_chance.setEnabled(false);
 			
 		// Make dice faces and keep buttons
-			ImageIcon [] diceImage = new ImageIcon[6];
+			diceImage = new ImageIcon[6];
 			for (int i = 1; i <= 6; ++i){
 				diceImage[i-1] = new ImageIcon( getClass().getResource(String.format("assets/dice_%d.png",i)));
 			}
@@ -224,16 +255,12 @@ public class YahtzeeJFrame extends JFrame {
 			
 		// Make additional components
 			JLabel scorecard = new JLabel("Scorecard");
-			JButton total = new JButton ("<html><b>Total:</b></html>");
+			LabelButton total = new LabelButton ("Total:");
 			JLabel empty_cell = new JLabel("                     ");
 			playerTurnLabel = new JLabel();
-			JButton upperBonus = new JButton("<html><b>Upper Bonus\n(Upper Section >= 63 Pts.):</b></html>");
-			JButton upperTotal = new JButton("<html><b>Total Upper Section:</b></html>");
-			JButton yahtzeeBonus = new JButton("<html><b>Yahtzee Bonus:</b></html>");
-			upperBonus.setEnabled(false);
-			upperTotal.setEnabled(false);
-			yahtzeeBonus.setEnabled(false);
-			total.setEnabled(false);
+			LabelButton upperBonus = new LabelButton("Upper Bonus(Upper Section >= 63 Pts.):");
+			LabelButton upperTotal = new LabelButton("Total Upper Section:");
+			LabelButton yahtzeeBonus = new LabelButton("Yahtzee Bonus:");
 			if(numberOfPlayers == 1)
 				playerTurnLabel = new JLabel();
 			else
@@ -282,27 +309,26 @@ public class YahtzeeJFrame extends JFrame {
 			add(empty_cell, gbc);
 			
 			gbc.gridx = offset + 3;
-			gbc.gridy = 11;
+			gbc.gridy = 13;
 			add(roll_1, gbc);
 			
 			gbc.gridx = offset + 4;
-			gbc.gridy = 11;
+			gbc.gridy = 13;
 			add(roll_2, gbc);
 			
 			gbc.gridx = offset + 5;
-			gbc.gridy = 11;
+			gbc.gridy = 13;
 			add(roll_3, gbc);
 			
 			gbc.gridx = offset + 4;
-			gbc.gridy = 8;
+			gbc.gridy = 10;
 			add(roll, gbc);
 
 			for (int i = 0; i < 5; ++i){
 				gbc.gridx = offset + 2 + i;
-				gbc.gridy = 5;
+				gbc.gridy = 6;
 				add(diceIcons[i], gbc);
 			}
-			
 			gbc.gridx = offset + 2;
 			gbc.gridy = 2;
 			keep_1.setEnabled(false);
@@ -329,368 +355,58 @@ public class YahtzeeJFrame extends JFrame {
 			add(keep_5, gbc);
 			
 			gbc.gridx = offset + 2;
-			gbc.gridwidth = 3;
+			gbc.gridwidth = 5;
 			gbc.anchor = GridBagConstraints.CENTER;
 			gbc.gridy = 0;
+
+			playerTurnLabel.setFont(playerTurnLabel.getFont().deriveFont(Font.BOLD, 20f));
+			playerTurnLabel.setBorder(new EmptyBorder(0, 0, 10, 0));
 			add(playerTurnLabel, gbc);
 			
 		// Action listener for the Roll button, 
-			roll.addActionListener(new ActionListener() {
-                @Override
-                public void actionPerformed(ActionEvent e) {
-                    // Rolls an amount of random dice values
-					Random rand = new Random();
-					
-					if(totalTurns == 0){
-						button_aces.setEnabled(true);
-						button_twos.setEnabled(true);
-						button_threes.setEnabled(true);
-						button_fours.setEnabled(true);
-						button_fives.setEnabled(true);
-						button_sixes.setEnabled(true);
-						button_threeKind.setEnabled(true);
-						button_fourKind.setEnabled(true);
-						button_fullHouse.setEnabled(true);
-						button_smStraight.setEnabled(true);
-						button_lgStraight.setEnabled(true);
-						button_yahtzee.setEnabled(true);
-						button_chance.setEnabled(true);
-					}
-					if (currRoll == 1){
-						keep_1.setEnabled(true);
-						keep_2.setEnabled(true);
-						keep_3.setEnabled(true);
-						keep_4.setEnabled(true);
-						keep_5.setEnabled(true);
-						for (int i = 0; i < 5; ++i){
-							if (!(dice[i].checkKept())){
-								int newnum = rand.nextInt(6) + 1;
-								dice[i].setValue(newnum);
-								diceIcons[i].setIcon(diceImage[newnum - 1]);
-
-							}
-						}
-						roll_1.setVisible(true);
-						chooseScore();
-						currRoll++;
-					}
-					else if (currRoll == 2){
-						for (int i = 0; i < 5; ++i){
-							if (!(dice[i].checkKept())){
-								int newnum = rand.nextInt(6) + 1;
-								dice[i].setValue(newnum);
-								diceIcons[i].setIcon(diceImage[newnum - 1]);
-
-							}
-						}
-						currRoll++;
-						roll_2.setVisible(true);
-					}
-					else{
-						for (int i = 0; i < 5; ++i){
-							if (!(dice[i].checkKept())){
-								int newnum = rand.nextInt(6) + 1;
-								dice[i].setValue(newnum);
-								diceIcons[i].setIcon(diceImage[newnum - 1]);
-
-							}
-						}
-						roll.setEnabled(false);
-						keep_1.setEnabled(false);
-						keep_2.setEnabled(false);
-						keep_3.setEnabled(false);
-						keep_4.setEnabled(false);
-						keep_5.setEnabled(false);
-						roll_3.setVisible(true);
-					}
-                }
-            });
+			roll.setActionCommand("Roll");
+			roll.addActionListener(e);
 			
 		// Action listener for the five Keep buttons
-			keep_1.addActionListener(new ActionListener() {
-                @Override
-                public void actionPerformed(ActionEvent e) {
-                    keep_1.setEnabled(false);
-					dice[0].setKept(true);
-                }
-            });
-			keep_2.addActionListener(new ActionListener() {
-                @Override
-                public void actionPerformed(ActionEvent e) {
-                    keep_2.setEnabled(false);
-					dice[1].setKept(true);
-                }
-            });
-			keep_3.addActionListener(new ActionListener() {
-                @Override
-                public void actionPerformed(ActionEvent e) {
-                    keep_3.setEnabled(false);
-					dice[2].setKept(true);
-                }
-            });
-			keep_4.addActionListener(new ActionListener() {
-                @Override
-                public void actionPerformed(ActionEvent e) {
-                    keep_4.setEnabled(false);
-					dice[3].setKept(true);
-                }
-            });
-			keep_5.addActionListener(new ActionListener() {
-                @Override
-                public void actionPerformed(ActionEvent e) {
-                    keep_5.setEnabled(false);
-					dice[4].setKept(true);
-                }
-            });
+			keep_1.setActionCommand("Keep1");
+			keep_1.addActionListener(e);
+			keep_2.setActionCommand("Keep2");
+			keep_2.addActionListener(e);
+			keep_3.setActionCommand("Keep3");
+			keep_3.addActionListener(e);
+			keep_4.setActionCommand("Keep4");
+			keep_4.addActionListener(e);
+			keep_5.setActionCommand("Keep5");
+			keep_5.addActionListener(e);
 		// Action listener for each of the 13 scorecard choices
-			button_aces.addActionListener(new ActionListener() {
-                @Override
-                public void actionPerformed(ActionEvent e) {
-					int counter = 0;
-                    for (Dice d : dice){
-						if (d.getValue() == 1){
-							counter++;
-						}
-					}
-					players[currentPlayer].setAces(counter);
-					players[currentPlayer].addSelected(0);
-					resetTurn();
-                }
-            });
-			button_twos.addActionListener(new ActionListener() {
-                @Override
-                public void actionPerformed(ActionEvent e) {
-                    int counter = 0;
-                    for (Dice d : dice){
-						if (d.getValue() == 2){
-							counter += 2;
-						}
-					}
-					players[currentPlayer].setTwos(counter);
-					players[currentPlayer].addSelected(1);
-					resetTurn();
-                }
-            });
-			button_threes.addActionListener(new ActionListener() {
-                @Override
-                public void actionPerformed(ActionEvent e) {
-                    int counter = 0;
-                    for (Dice d : dice){
-						if (d.getValue() == 3){
-							counter += 3;
-						}
-					}
-					players[currentPlayer].setThrees(counter);
-					players[currentPlayer].addSelected(2);
-					resetTurn();
-                }
-            });
-			button_fours.addActionListener(new ActionListener() {
-                @Override
-                public void actionPerformed(ActionEvent e) {
-                    int counter = 0;
-                    for (Dice d : dice){
-						if (d.getValue() == 4){
-							counter+=4;
-						}
-					}
-					players[currentPlayer].setFours(counter);
-					players[currentPlayer].addSelected(3);
-					resetTurn();
-                }
-            });
-			button_fives.addActionListener(new ActionListener() {
-                @Override
-                public void actionPerformed(ActionEvent e) {
-                    int counter = 0;
-                    for (Dice d : dice){
-						if (d.getValue() == 5){
-							counter+=5;
-						}
-					}
-					players[currentPlayer].setFives(counter);
-					players[currentPlayer].addSelected(4);
-					resetTurn();
-                }
-            });
-			button_sixes.addActionListener(new ActionListener() {
-                @Override
-                public void actionPerformed(ActionEvent e) {
-                    int counter = 0;
-                    for (Dice d : dice){
-						if (d.getValue() == 6){
-							counter+=6;
-						}
-					}
-					players[currentPlayer].setSixes(counter);
-					players[currentPlayer].addSelected(5);
-					resetTurn();
-                }
-            });
-			button_threeKind.addActionListener(new ActionListener() {
-                @Override
-                public void actionPerformed(ActionEvent e) {
-					int counter = 0;
-					int[] diceCounter = new int[6];
-					for (Dice d : dice){
-						diceCounter[d.getValue() - 1]++;
-					}
-					for (int i = 0; i < 6; ++i){
-						if (diceCounter[i] == 3){
-							for (Dice d : dice){
-								counter+=d.getValue();
-							}
-						}
-					}
-					players[currentPlayer].setThreeKind(counter);
-					players[currentPlayer].addSelected(6);
-					resetTurn();
-                }
-            });
-			button_fourKind.addActionListener(new ActionListener() {
-                @Override
-                public void actionPerformed(ActionEvent e) {
-                    int counter = 0;
-					int[] diceCounter = new int[6];
-					for (Dice d : dice){
-						diceCounter[d.getValue() - 1]++;
-					}
-					for (int i = 0; i < 6; ++i){
-						if (diceCounter[i] == 4){
-							for (Dice d : dice){
-								counter+=d.getValue();
-							}
-						}
-					}
-					players[currentPlayer].setFourKind(counter);
-					players[currentPlayer].addSelected(7);
-					resetTurn();
-                }
-            });
-			button_fullHouse.addActionListener(new ActionListener() {
-                @Override
-                public void actionPerformed(ActionEvent e) {
-					//Full House Logic
-					int counter = 0;
-					boolean two = false;
-					boolean three = false;
-					int[] diceCounter = new int[6];
-					for (Dice d : dice){
-						diceCounter[d.getValue() - 1]++;
-					}
-					for (int i = 0; i < 6; ++i){
-						if (diceCounter[i] == 2){
-							two = true;
-						}
-						if (diceCounter[i] == 3){
-							three = true;
-						}
-					}
-					if (two == true && three == true){
-						counter = 25;
-					}
-					players[currentPlayer].setFullHouse(counter);
-					players[currentPlayer].addSelected(8);
-					resetTurn();
-                }
-            });
-			button_smStraight.addActionListener(new ActionListener() {
-                @Override
-                public void actionPerformed(ActionEvent e) {
-					//Straight Logic
-					int longestStraight = 0;
-					int temp = 0;
-					int counter = 0;
-					int[] diceCounter = new int[6];
-					for (Dice d : dice){
-						diceCounter[d.getValue() - 1]++;
-					}
-					for (int i = 0; i < 6; ++i){
-						if (diceCounter[i] >= 1){
-							temp++;
-						}
-						else{
-							if (temp > longestStraight){
-								longestStraight = temp;
-							}
-							temp = 0;
-						}
-					}
-					if (temp > longestStraight){
-						longestStraight = temp;
-					}
-					if (longestStraight >= 4){
-						counter = 30;
-					}
-                    players[currentPlayer].setSmStraight(counter);
-					players[currentPlayer].addSelected(9);
-					resetTurn();
-                }
-            });
-			button_lgStraight.addActionListener(new ActionListener() {
-                @Override
-                public void actionPerformed(ActionEvent e) {
-					//Straight Logic
-					int longestStraight = 0;
-					int temp = 0;
-					int counter = 0;
-					int[] diceCounter = new int[6];
-					for (Dice d : dice){
-						diceCounter[d.getValue() - 1]++;
-					}
-					for (int i = 0; i < 6; ++i){
-						if (diceCounter[i] >= 1){
-							temp++;
-						}
-						else{
-							if (temp > longestStraight){
-								longestStraight = temp;
-							}
-							temp = 0;
-						}
-					}
-					if (temp > longestStraight){
-						longestStraight = temp;
-					}
-					if (longestStraight >= 5){
-						counter = 40;
-					}
-                    players[currentPlayer].setLgStraight(counter);
-					players[currentPlayer].addSelected(10);
-					resetTurn();
-                }
-            });
-			button_yahtzee.addActionListener(new ActionListener() {
-                @Override
-                public void actionPerformed(ActionEvent e) {
-					int counter = 0;
-					int[] diceCounter = new int[6];
-					for (Dice d : dice){
-						diceCounter[d.getValue() - 1]++;
-					}
-					for (int i = 0; i < 6; ++i){
-						if (diceCounter[i] == 5){
-							counter = 50;
-						}
-					}
-                    players[currentPlayer].setYahtzee(counter);
-					players[currentPlayer].addSelected(11);
-					resetTurn();
-                }
-            });
-			button_chance.addActionListener(new ActionListener() {
-                @Override
-                public void actionPerformed(ActionEvent e) {
-                    int counter = 0;
-					for (Dice d : dice){
-						counter+=d.getValue();
-					}
-					players[currentPlayer].setChance(counter);
-					players[currentPlayer].addSelected(12);
-					resetTurn();
-                }
-            });
-			// End of game
+			button_aces.setActionCommand("Aces");
+			button_aces.addActionListener(e);
+			button_twos.setActionCommand("Twos");
+			button_twos.addActionListener(e);
+			button_threes.setActionCommand("Threes");
+			button_threes.addActionListener(e);
+			button_fours.setActionCommand("Fours");
+			button_fours.addActionListener(e);
+			button_fives.setActionCommand("Fives");
+			button_fives.addActionListener(e);
+			button_sixes.setActionCommand("Sixes");
+			button_sixes.addActionListener(e);
+			button_threeKind.setActionCommand("ThreeKind");
+			button_threeKind.addActionListener(e);
+			button_fourKind.setActionCommand("FourKind");
+			button_fourKind.addActionListener(e);
+			button_fullHouse.setActionCommand("FullHouse");
+			button_fullHouse.addActionListener(e);
+			button_smStraight.setActionCommand("SmStraight");
+			button_smStraight.addActionListener(e);
+			button_lgStraight.setActionCommand("LgStraight");
+			button_lgStraight.addActionListener(e);
+			button_yahtzee.setActionCommand("Yahtzee");
+			button_yahtzee.addActionListener(e);
+			button_chance.setActionCommand("Chance");
+			button_chance.addActionListener(e);
+			// Set Player 1
+			playerScores[currentPlayer].setBorder(BorderFactory.createLineBorder(Color.RED, 4));
         }
 
 		public void nextPlayer(){
@@ -713,6 +429,10 @@ public class YahtzeeJFrame extends JFrame {
 			playerScores[currentPlayer].label_total.setText(String.format("   %d   ",players[currentPlayer].getTotal()));
 
 			currentPlayer = (currentPlayer + 1)%numberOfPlayers;
+			for(int i = 0; i < numberOfPlayers; i++){
+				playerScores[i].setBorder(BorderFactory.createLineBorder(Color.BLACK));
+			}
+			playerScores[currentPlayer].setBorder(BorderFactory.createLineBorder(Color.RED, 4));
 			totalTurns++;
 			button_aces.setEnabled(false);
 			button_twos.setEnabled(false);
@@ -729,19 +449,86 @@ public class YahtzeeJFrame extends JFrame {
 			button_chance.setEnabled(false);
 		}
 		public void chooseScore(){
-			button_aces.setEnabled(players[currentPlayer].checkSelected(0));
-			button_twos.setEnabled(players[currentPlayer].checkSelected(1));
-			button_threes.setEnabled(players[currentPlayer].checkSelected(2));
-			button_fours.setEnabled(players[currentPlayer].checkSelected(3));
-			button_fives.setEnabled(players[currentPlayer].checkSelected(4));
-			button_sixes.setEnabled(players[currentPlayer].checkSelected(5));
-			button_threeKind.setEnabled(players[currentPlayer].checkSelected(6));
-			button_fourKind.setEnabled(players[currentPlayer].checkSelected(7));
-			button_fullHouse.setEnabled(players[currentPlayer].checkSelected(8));
-			button_smStraight.setEnabled(players[currentPlayer].checkSelected(9));
-			button_lgStraight.setEnabled(players[currentPlayer].checkSelected(10));
-			button_yahtzee.setEnabled(players[currentPlayer].checkSelected(11));
-			button_chance.setEnabled(players[currentPlayer].checkSelected(12));
+			int yahtzeeCounter = 0;
+			int lastNum = 0;
+			keep_1.setEnabled(true);
+			keep_2.setEnabled(true);
+			keep_3.setEnabled(true);
+			keep_4.setEnabled(true);
+			keep_5.setEnabled(true);
+			for (Dice d : dice){
+				d.setKept(false);
+				if (d.getValue() == lastNum)
+					yahtzeeCounter++;
+				else
+					lastNum = d.getValue();
+			}
+			if (yahtzeeCounter == 4){
+				if (players[currentPlayer].checkSelected(11) == false && players[currentPlayer].getYahtzee() == 50){
+					//Yahtzee BONUS
+					players[currentPlayer].yahtzeeBonus();
+					joker = true;
+					if (players[currentPlayer].checkSelected(lastNum - 1) == true){
+						joker = false;
+						button_threeKind.setEnabled(false);
+						button_fourKind.setEnabled(false);
+						button_fullHouse.setEnabled(false);
+						button_smStraight.setEnabled(false);
+						button_lgStraight.setEnabled(false);
+						button_yahtzee.setEnabled(false);
+						button_chance.setEnabled(false);
+					}
+					else{
+						boolean bottomTaken = true;
+						for (int i = 6; i < 13; ++i){
+							if (players[currentPlayer].checkSelected(i) == true){
+								bottomTaken = false;
+								break;
+							}
+						}
+						if (bottomTaken){
+							button_aces.setEnabled(players[currentPlayer].checkSelected(0));
+							button_twos.setEnabled(players[currentPlayer].checkSelected(1));
+							button_threes.setEnabled(players[currentPlayer].checkSelected(2));
+							button_fours.setEnabled(players[currentPlayer].checkSelected(3));
+							button_fives.setEnabled(players[currentPlayer].checkSelected(4));
+							button_sixes.setEnabled(players[currentPlayer].checkSelected(5));
+						}
+						else{
+							button_aces.setEnabled(false);
+							button_twos.setEnabled(false);
+							button_threes.setEnabled(false);
+							button_fours.setEnabled(false);
+							button_fives.setEnabled(false);
+							button_sixes.setEnabled(false);
+							button_threeKind.setEnabled(players[currentPlayer].checkSelected(6));
+							button_fourKind.setEnabled(players[currentPlayer].checkSelected(7));
+							button_fullHouse.setEnabled(players[currentPlayer].checkSelected(8));
+							button_smStraight.setEnabled(players[currentPlayer].checkSelected(9));
+							button_lgStraight.setEnabled(players[currentPlayer].checkSelected(10));
+							button_yahtzee.setEnabled(players[currentPlayer].checkSelected(11));
+							button_chance.setEnabled(players[currentPlayer].checkSelected(12));
+						}
+						
+					}
+				}
+			}
+			else{
+				button_aces.setEnabled(players[currentPlayer].checkSelected(0));
+				button_twos.setEnabled(players[currentPlayer].checkSelected(1));
+				button_threes.setEnabled(players[currentPlayer].checkSelected(2));
+				button_fours.setEnabled(players[currentPlayer].checkSelected(3));
+				button_fives.setEnabled(players[currentPlayer].checkSelected(4));
+				button_sixes.setEnabled(players[currentPlayer].checkSelected(5));
+				button_threeKind.setEnabled(players[currentPlayer].checkSelected(6));
+				button_fourKind.setEnabled(players[currentPlayer].checkSelected(7));
+				button_fullHouse.setEnabled(players[currentPlayer].checkSelected(8));
+				button_smStraight.setEnabled(players[currentPlayer].checkSelected(9));
+				button_lgStraight.setEnabled(players[currentPlayer].checkSelected(10));
+				button_yahtzee.setEnabled(players[currentPlayer].checkSelected(11));
+				button_chance.setEnabled(players[currentPlayer].checkSelected(12));
+			}
+			
 		}
 		public void resetTurn(){
 			currRoll = 1;
@@ -780,29 +567,376 @@ public class YahtzeeJFrame extends JFrame {
 				// Multiplayer
 				else{
 					// Find highest score
-					int [] finalScores = new int[numberOfPlayers];
+					int max = 0;
+					String winner = "";
+					boolean isTie = false;
 					for(int m = 0; m < numberOfPlayers; m++){
-						finalScores[m] = players[m].getTotal();
+						if (players[m].getTotal() > max)
+							max = players[m].getTotal();
 					}
 					for(int n = 0; n < numberOfPlayers; n++){
-						if(finalScores[n] > finalScores[winningPlayer]){
-							winningPlayer = n;
-							isTie = false;
-							/*if(finalScores[n] == finalScores[winningPlayer]){
+						if(players[n].getTotal() == max){
+							if (winner.length() > 1){
 								isTie = true;
-							}*/
+								winner += String.format(" ,Player %d",(n+1));
+							}
+							else{
+								winner = String.format("Player %d",(n+1));
+							}
 						}
 					}
 					if(!isTie)
-						playerTurnLabel.setText(String.format("Winner is Player %d with score of %d", (winningPlayer + 1), players[winningPlayer].getTotal()));
+						playerTurnLabel.setText(winner + " WINS!!!" + String.format(" | Score: %d",max));
 					else
-						playerTurnLabel.setText(String.format("Winning score was a tie!"));
+						playerTurnLabel.setText(winner + " TIED!!!" + String.format(" | Score: %d",max));
 				}
 				roll.setEnabled(false);
 				// Game has ended
 			}
 		}
+		//I like how the buttons look on the scoreboard but I want these buttons to always be disabled and have readable text
+		public class LabelButton extends JButton {
+			public LabelButton(String text) {
+				super(text);
+				setEnabled(false);
+			}
+			public void paintComponent(Graphics g) {
+				Graphics2D g2d = (Graphics2D) g.create();
+				FontMetrics metrics = g2d.getFontMetrics();
+				int x = (getWidth() - metrics.stringWidth(getText())) / 2;
+				int y = ((getHeight() - metrics.getHeight()) / 2) + metrics.getAscent();
+				g2d.drawString(getText(), x, y);
+			}
+		}
+		class GameBoardActionListener implements ActionListener{
+			public void actionPerformed(ActionEvent e){
+				String button = e.getActionCommand();
+				//Roll Logic
+				if (button == "Roll"){
+					// Rolls an amount of random dice values
+					Random rand = new Random();
+					
+					if(totalTurns == 0){
+						button_aces.setEnabled(true);
+						button_twos.setEnabled(true);
+						button_threes.setEnabled(true);
+						button_fours.setEnabled(true);
+						button_fives.setEnabled(true);
+						button_sixes.setEnabled(true);
+						button_threeKind.setEnabled(true);
+						button_fourKind.setEnabled(true);
+						button_fullHouse.setEnabled(true);
+						button_smStraight.setEnabled(true);
+						button_lgStraight.setEnabled(true);
+						button_yahtzee.setEnabled(true);
+						button_chance.setEnabled(true);
+					}
+					if (currRoll == 1){
+						for (int i = 0; i < 5; ++i){
+							if (!(dice[i].checkKept())){
+								int newnum = rand.nextInt(6) + 1;
+								dice[i].setValue(newnum);
+								diceIcons[i].setIcon(diceImage[newnum - 1]);
+
+							}
+						}
+						roll_1.setVisible(true);
+						chooseScore();
+						currRoll++;
+					}
+					else if (currRoll == 2){
+						for (int i = 0; i < 5; ++i){
+							if (!(dice[i].checkKept())){
+								int newnum = rand.nextInt(6) + 1;
+								dice[i].setValue(newnum);
+								diceIcons[i].setIcon(diceImage[newnum - 1]);
+
+							}
+						}
+						currRoll++;
+						roll_2.setVisible(true);
+						chooseScore();
+					}
+					else{
+						for (int i = 0; i < 5; ++i){
+							if (!(dice[i].checkKept())){
+								int newnum = rand.nextInt(6) + 1;
+								dice[i].setValue(newnum);
+								diceIcons[i].setIcon(diceImage[newnum - 1]);
+
+							}
+						}
+						roll.setEnabled(false);
+						roll_3.setVisible(true);
+						chooseScore();
+						keep_1.setEnabled(false);
+						keep_2.setEnabled(false);
+						keep_3.setEnabled(false);
+						keep_4.setEnabled(false);
+						keep_5.setEnabled(false);
+					}
+				}
+				//Keep Logic
+				else if(button == "Keep1"){
+					keep_1.setEnabled(false);
+					dice[0].setKept(true);
+				}
+				else if(button == "Keep2"){
+					keep_2.setEnabled(false);
+					dice[1].setKept(true);
+				}
+				else if(button == "Keep3"){
+					keep_3.setEnabled(false);
+					dice[2].setKept(true);
+				}
+				else if(button == "Keep4"){
+					keep_4.setEnabled(false);
+					dice[3].setKept(true);
+				}
+				else if(button == "Keep5"){
+					keep_5.setEnabled(false);
+					dice[4].setKept(true);
+				}
+
+				//Scoreboard Logic
+				else if(button == "Aces"){
+					int counter = 0;
+                    for (Dice d : dice){
+						if (d.getValue() == 1){
+							counter++;
+						}
+					}
+					players[currentPlayer].setAces(counter);
+					if (players[currentPlayer].getUpper() >= 63){
+						players[currentPlayer].setUpperBonus();
+					}
+					players[currentPlayer].addSelected(0);
+					resetTurn();
+				}
+				else if(button == "Twos"){
+					int counter = 0;
+                    for (Dice d : dice){
+						if (d.getValue() == 2){
+							counter += 2;
+						}
+					}
+					players[currentPlayer].setTwos(counter);
+					if (players[currentPlayer].getUpper() >= 63){
+						players[currentPlayer].setUpperBonus();
+					}
+					players[currentPlayer].addSelected(1);
+					resetTurn();
+				}
+				else if(button == "Threes"){
+					int counter = 0;
+                    for (Dice d : dice){
+						if (d.getValue() == 3){
+							counter += 3;
+						}
+					}
+					players[currentPlayer].setThrees(counter);
+					if (players[currentPlayer].getUpper() >= 63){
+						players[currentPlayer].setUpperBonus();
+					}
+					players[currentPlayer].addSelected(2);
+					resetTurn();
+				}
+				else if(button == "Fours"){
+					int counter = 0;
+                    for (Dice d : dice){
+						if (d.getValue() == 4){
+							counter+=4;
+						}
+					}
+					players[currentPlayer].setFours(counter);
+					if (players[currentPlayer].getUpper() >= 63){
+						players[currentPlayer].setUpperBonus();
+					}
+					players[currentPlayer].addSelected(3);
+					resetTurn();
+				}
+				else if(button == "Fives"){
+					int counter = 0;
+                    for (Dice d : dice){
+						if (d.getValue() == 5){
+							counter+=5;
+						}
+					}
+					players[currentPlayer].setFives(counter);
+					if (players[currentPlayer].getUpper() >= 63){
+						players[currentPlayer].setUpperBonus();
+					}
+					players[currentPlayer].addSelected(4);
+					resetTurn();
+				}
+				else if(button == "Sixes"){
+					int counter = 0;
+                    for (Dice d : dice){
+						if (d.getValue() == 6){
+							counter+=6;
+						}
+					}
+					players[currentPlayer].setSixes(counter);
+					if (players[currentPlayer].getUpper() >= 63){
+						players[currentPlayer].setUpperBonus();
+					}
+					players[currentPlayer].addSelected(5);
+					resetTurn();
+				}
+				else if(button == "ThreeKind"){
+					int counter = 0;
+					int[] diceCounter = new int[6];
+					for (Dice d : dice){
+						diceCounter[d.getValue() - 1]++;
+					}
+					for (int i = 0; i < 6; ++i){
+						if (diceCounter[i] >= 3){
+							for (Dice d : dice){
+								counter+=d.getValue();
+							}
+						}
+					}
+					players[currentPlayer].setThreeKind(counter);
+					players[currentPlayer].addSelected(6);
+					resetTurn();
+				}
+				else if(button == "FourKind"){
+					int counter = 0;
+					int[] diceCounter = new int[6];
+					for (Dice d : dice){
+						diceCounter[d.getValue() - 1]++;
+					}
+					for (int i = 0; i < 6; ++i){
+						if (diceCounter[i] >= 4){
+							for (Dice d : dice){
+								counter+=d.getValue();
+							}
+						}
+					}
+					players[currentPlayer].setFourKind(counter);
+					players[currentPlayer].addSelected(7);
+					resetTurn();
+				}
+				else if (button == "FullHouse"){
+					//Full House Logic
+					int counter = 0;
+					boolean two = false;
+					boolean three = false;
+					int[] diceCounter = new int[6];
+					for (Dice d : dice){
+						diceCounter[d.getValue() - 1]++;
+					}
+					for (int i = 0; i < 6; ++i){
+						if (diceCounter[i] == 2){
+							two = true;
+						}
+						if (diceCounter[i] == 3){
+							three = true;
+						}
+					}
+					if ((two == true && three == true) || joker == true){
+						counter = 25;
+					}
+					players[currentPlayer].setFullHouse(counter);
+					players[currentPlayer].addSelected(8);
+					resetTurn();
+				}
+				else if (button == "SmStraight"){
+					//Straight Logic
+					int longestStraight = 0;
+					int temp = 0;
+					int counter = 0;
+					int[] diceCounter = new int[6];
+					for (Dice d : dice){
+						diceCounter[d.getValue() - 1]++;
+					}
+					for (int i = 0; i < 6; ++i){
+						if (diceCounter[i] >= 1){
+							temp++;
+						}
+						else{
+							if (temp > longestStraight){
+								longestStraight = temp;
+							}
+							temp = 0;
+						}
+					}
+					if (temp > longestStraight){
+						longestStraight = temp;
+					}
+					if (longestStraight >= 4 || joker == true){
+						counter = 30;
+					}
+                    players[currentPlayer].setSmStraight(counter);
+					players[currentPlayer].addSelected(9);
+					resetTurn();
+				}
+				else if (button == "LgStraight"){
+					//Straight Logic
+					int longestStraight = 0;
+					int temp = 0;
+					int counter = 0;
+					int[] diceCounter = new int[6];
+					for (Dice d : dice){
+						diceCounter[d.getValue() - 1]++;
+					}
+					for (int i = 0; i < 6; ++i){
+						if (diceCounter[i] >= 1){
+							temp++;
+						}
+						else{
+							if (temp > longestStraight){
+								longestStraight = temp;
+							}
+							temp = 0;
+						}
+					}
+					if (temp > longestStraight){
+						longestStraight = temp;
+					}
+					if (longestStraight >= 5 || joker == true){
+						counter = 40;
+					}
+                    players[currentPlayer].setLgStraight(counter);
+					players[currentPlayer].addSelected(10);
+					resetTurn();
+				}
+				else if (button == "Yahtzee"){
+					int counter = 0;
+					int[] diceCounter = new int[6];
+					for (Dice d : dice){
+						diceCounter[d.getValue() - 1]++;
+					}
+					for (int i = 0; i < 6; ++i){
+						if (diceCounter[i] == 5){
+							counter = 50;
+						}
+					}
+                    players[currentPlayer].setYahtzee(counter);
+					players[currentPlayer].addSelected(11);
+					resetTurn();
+				}
+				else if (button == "Chance"){
+					int counter = 0;
+					for (Dice d : dice){
+						counter+=d.getValue();
+					}
+					players[currentPlayer].setChance(counter);
+					players[currentPlayer].addSelected(12);
+					resetTurn();
+				}
+				else if (button == "Restart"){
+					restartGame();
+				}
+				else if (button == "Return"){
+					returnGame();
+				}
+			}
+		}
     }
+
+	
+
 	class PlayerLabelPanel extends JPanel{
 
 		JLabel label_aces;
