@@ -1,4 +1,5 @@
-public class Dice{
+import java.io.Serializable;
+public class Dice implements Serializable{
     private int value;
     private boolean isKept;
 

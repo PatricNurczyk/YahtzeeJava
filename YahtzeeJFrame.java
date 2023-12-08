@@ -1,9 +1,11 @@
 import javax.swing.*;
 import java.awt.*;
+import java.io.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.Random;
 import javax.swing.border.EmptyBorder;
+import java.io.Serializable;
 
 public class YahtzeeJFrame extends JFrame {
     private int numberOfPlayers = 2;
@@ -125,12 +127,14 @@ public class YahtzeeJFrame extends JFrame {
 		private int currentPlayerCounter;
 		private int winningPlayer = 0;
 		private int totalTurns = 0;
+		private int high_score;
 		private boolean joker = false;
 		private Player[] players;
 		private PlayerLabelPanel [] playerScores;
 		private Dice[] dice = new Dice[5];
 		ImageIcon [] diceImage;
 		private int currRoll = 1;
+		private boolean isTie;
 		private JLabel playerTurnLabel;
 		private JButton button_aces;
 		private JButton button_twos;
@@ -145,10 +149,9 @@ public class YahtzeeJFrame extends JFrame {
 		private JButton button_lgStraight;
 		private JButton button_yahtzee;
 		private JButton button_chance;
-		private boolean isTie;
 		private static JMenuBar menuBar;
 		private static JMenu menu;
-		private static JMenuItem restart, returnToMenu;
+		private static JMenuItem restart, returnToMenu, saveGame, loadGame;
 
 		JButton keep_1;
 		JButton keep_2;
@@ -172,10 +175,18 @@ public class YahtzeeJFrame extends JFrame {
 			restart = new JMenuItem("Restart Game");
 			restart.setActionCommand("Restart");
 			restart.addActionListener(e);
+			saveGame = new JMenuItem("Save Game");
+			saveGame.setActionCommand("Save");
+			saveGame.addActionListener(e);
+			loadGame = new JMenuItem("Load Game");
+			loadGame.setActionCommand("Load");
+			loadGame.addActionListener(e);
 			returnToMenu = new JMenuItem("Return To Menu");
 			returnToMenu.setActionCommand("Return");
 			returnToMenu.addActionListener(e);
 			menu.add(restart);
+			menu.add(saveGame);
+			menu.add(loadGame);
 			menu.add(returnToMenu);
 			menuBar.add(menu);
 			setJMenuBar(menuBar);
@@ -261,6 +272,10 @@ public class YahtzeeJFrame extends JFrame {
 			LabelButton upperBonus = new LabelButton("Upper Bonus(Upper Section >= 63 Pts.):");
 			LabelButton upperTotal = new LabelButton("Total Upper Section:");
 			LabelButton yahtzeeBonus = new LabelButton("Yahtzee Bonus:");
+			
+			findHighScore();
+			JLabel high_score_label = new JLabel("High score: " + high_score);
+			
 			if(numberOfPlayers == 1)
 				playerTurnLabel = new JLabel();
 			else
@@ -362,6 +377,10 @@ public class YahtzeeJFrame extends JFrame {
 			playerTurnLabel.setFont(playerTurnLabel.getFont().deriveFont(Font.BOLD, 20f));
 			playerTurnLabel.setBorder(new EmptyBorder(0, 0, 10, 0));
 			add(playerTurnLabel, gbc);
+			
+			gbc.gridx = 7;
+			gbc.gridy = 15;
+			add(high_score_label, gbc);
 			
 		// Action listener for the Roll button, 
 			roll.setActionCommand("Roll");
@@ -559,15 +578,28 @@ public class YahtzeeJFrame extends JFrame {
 			}
 			// End game condition
 			if(totalTurns == (13 * numberOfPlayers)){
+				int max = 0;
 				// Singleplayer
 				if(numberOfPlayers == 1){
 					playerTurnLabel.setVisible(true);
 					playerTurnLabel.setText(String.format("Your score: %d", players[currentPlayer].getTotal()));
+					// Checks for high score
+					if(players[currentPlayer].getTotal() > high_score){
+						try{	
+							System.out.println("Saving new high score");
+							BufferedWriter high_out = new BufferedWriter(new FileWriter("high_score.txt"));
+							high_out.write(String.valueOf(players[currentPlayer].getTotal()));
+							high_out.flush();
+						}
+						catch(IOException ex){
+							System.out.println("(IOException)");
+							ex.printStackTrace();
+						}
+					}
 				}
 				// Multiplayer
 				else{
 					// Find highest score
-					int max = 0;
 					String winner = "";
 					boolean isTie = false;
 					for(int m = 0; m < numberOfPlayers; m++){
@@ -589,9 +621,34 @@ public class YahtzeeJFrame extends JFrame {
 						playerTurnLabel.setText(winner + " WINS!!!" + String.format(" | Score: %d",max));
 					else
 						playerTurnLabel.setText(winner + " TIED!!!" + String.format(" | Score: %d",max));
+					// Checks for high score
+					if(max > high_score){
+						try{	
+							System.out.println("Saving new high score");
+							BufferedWriter high_out = new BufferedWriter(new FileWriter("high_score.txt"));
+							high_out.write(String.valueOf(max));
+							high_out.flush();
+						}
+						catch(IOException ex){
+							System.out.println("(IOException)");
+							ex.printStackTrace();
+						}
+					}
 				}
 				roll.setEnabled(false);
 				// Game has ended
+			}
+		}
+		public void findHighScore(){
+			try{
+				BufferedReader high_in = new BufferedReader(new FileReader("high_score.txt"));
+				String high_score_saved = high_in.readLine();
+				high_in.close();
+				high_score = Integer.parseInt(high_score_saved);
+			}
+			catch(IOException ex){
+				System.out.println("Save cancelled! (IOException)");
+				ex.printStackTrace();
 			}
 		}
 		//I like how the buttons look on the scoreboard but I want these buttons to always be disabled and have readable text
@@ -608,7 +665,7 @@ public class YahtzeeJFrame extends JFrame {
 				g2d.drawString(getText(), x, y);
 			}
 		}
-		class GameBoardActionListener implements ActionListener{
+		class GameBoardActionListener implements ActionListener, Serializable{
 			public void actionPerformed(ActionEvent e){
 				String button = e.getActionCommand();
 				//Roll Logic
@@ -931,11 +988,123 @@ public class YahtzeeJFrame extends JFrame {
 				else if (button == "Return"){
 					returnGame();
 				}
+				else if (button == "Save"){
+					// Copying data from the current game to the boardData serializable object
+					BoardData boardData = new BoardData();
+					boardData.currentPlayer = currentPlayer;
+					boardData.currentPlayerCounter = currentPlayerCounter;
+					boardData.totalTurns = totalTurns;
+					
+					for(int s = 0; s < numberOfPlayers; s++){
+						boardData.players[s] = players[s];
+					}
+					for(int st = 0; st < 5; st++){
+						boardData.dice[st] = dice[st];	
+					}
+					boardData.currRoll = currRoll;
+					
+					try{
+						save(boardData);
+						System.out.println("Save successful!");
+					}
+					catch(IOException ex){
+						System.out.println("Save cancelled! (IOException)");
+						ex.printStackTrace();
+					}
+					catch(ClassNotFoundException ex){
+						System.out.println("Save cancelled! (ClassNotFoundException)");
+						ex.printStackTrace();
+					}
+				}
+				else if (button == "Load"){
+					System.out.println("Loading...");
+					try{
+						// Attempts to load the save state into newBoard
+						BoardData newBoard = new BoardData();
+						newBoard.load();
+						
+						//Sets values of current game to the save state values
+						currentPlayer = newBoard.currentPlayer;
+						currentPlayerCounter = newBoard.currentPlayerCounter;
+						totalTurns = newBoard.totalTurns;
+						for(int s = 0; s < numberOfPlayers; s++){
+							players[s] = newBoard.players[s];
+						}
+						for(int st = 0; st < 5; st++){
+							dice[st] = newBoard.dice[st];	
+						}
+						currRoll = newBoard.currRoll;
+						// Rewrites labels and borders to what the old save state values were
+						for(int y = 0; y < numberOfPlayers; y++){
+							playerScores[y].label_aces.setText(String.format("   %d   ",players[y].getAces()));
+							playerScores[y].label_twos.setText(String.format("   %d   ",players[y].getTwos()));
+							playerScores[y].label_threes.setText(String.format("   %d   ",players[y].getThrees()));
+							playerScores[y].label_fours.setText(String.format("   %d   ",players[y].getFours()));
+							playerScores[y].label_fives.setText(String.format("   %d   ",players[y].getFives()));
+							playerScores[y].label_sixes.setText(String.format("   %d   ",players[y].getSixes()));
+							playerScores[y].label_threeKind.setText(String.format("   %d   ",players[y].getThreeKind()));
+							playerScores[y].label_fourKind.setText(String.format("   %d   ",players[y].getFourKind()));
+							playerScores[y].label_fullHouse.setText(String.format("   %d   ",players[y].getFullHouse()));
+							playerScores[y].label_smStraight.setText(String.format("   %d   ",players[y].getSmStraight()));
+							playerScores[y].label_lgStraight.setText(String.format("   %d   ",players[y].getLgStraight()));
+							playerScores[y].label_yahtzee.setText(String.format("   %d   ",players[y].getYahtzee()));
+							playerScores[y].label_chance.setText(String.format("   %d   ",players[y].getChance()));
+							playerScores[y].label_upperBonus.setText(String.format("   %d   ",players[y].getUpperBonus()));
+							playerScores[y].label_upperTotal.setText(String.format("   %d   ",players[y].getUpper()));
+							playerScores[y].label_yahtzeeBonus.setText(String.format("   %d   ",players[y].getYahtzeeBonus()));
+							playerScores[y].label_total.setText(String.format("   %d   ",players[y].getTotal()));
+						}
+						if(numberOfPlayers > 1)
+							playerTurnLabel.setText(String.format("Turn: Player %d", currentPlayerCounter));
+						playerScores[0].setBorder(BorderFactory.createLineBorder(Color.BLACK));
+						playerScores[currentPlayer].setBorder(BorderFactory.createLineBorder(Color.RED, 4));
+						System.out.println("Load successful!");
+					}
+					catch(IOException ex){
+						System.out.println("Load cancelled. (IOException)");
+					}
+					catch(ClassNotFoundException ex){
+						System.out.println("Load cancelled. (ClassNotFoundException)");
+					}
+				}
+			}
+			// Save method to write BoardData to save.txt
+			public void save(BoardData b) throws IOException, ClassNotFoundException{
+				FileOutputStream fileOutputStream = new FileOutputStream("save.txt");
+				ObjectOutputStream objectOutputStream = new ObjectOutputStream(fileOutputStream);
+				objectOutputStream.writeObject(b);
+				objectOutputStream.flush();
+				objectOutputStream.close();
 			}
 		}
     }
-
-	
+	class BoardData implements Serializable{
+		private int currentPlayer;
+		private int currentPlayerCounter;
+		private int totalTurns = 0;
+		private Player[] players = new Player[numberOfPlayers];
+		private Dice[] dice = new Dice[5];
+		private int currRoll = 1;
+		
+		public void load() throws IOException, ClassNotFoundException{
+			// Writes save to loadedData
+			FileInputStream fileInputStream = new FileInputStream("save.txt");
+			ObjectInputStream objectInputStream = new ObjectInputStream(fileInputStream);
+			BoardData loadedData = (BoardData)objectInputStream.readObject();
+			objectInputStream.close();
+			// Sets newBoard variables (from where load() is called) to loadedData values
+			this.currentPlayer = loadedData.currentPlayer;
+			this.currentPlayerCounter = loadedData.currentPlayerCounter;
+			this.totalTurns = loadedData.totalTurns;
+			for(int s = 0; s < numberOfPlayers; s++){
+				this.players[s] = loadedData.players[s];
+			}
+			for(int st = 0; st < 5; st++){
+				this.dice[st] = loadedData.dice[st];	
+			}
+			this.currRoll = loadedData.currRoll;
+		}
+	}
 
 	class PlayerLabelPanel extends JPanel{
 

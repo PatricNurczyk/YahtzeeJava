@@ -21,3 +21,8 @@ GameBoardJPanel -
 	Fixed the multiplayer "P2"+ labels to show up in the right spot
 	Moved around some of the counters throughout resetTurn, nextPlayer, and buttons to count turns at the right times
 	
+12/7:
+	Added the save game state, load game state, and high score functionalities (class BoardData, high_score.txt, save.txt, findHighScore(), load(), save(), etc)
+	Made sure that these functions work with multiplayer and any amount of players
+	Fixed most of the obvious bugs that came with these additions
+	*STILL HAVE TO ADD ERROR CHECKING FOR WHEN USER DECIDES TO LOAD (AKA WHEN THEY TRY TO LOAD A MULTIPLAYER GAME INTO SINGLEPLAYER)*
