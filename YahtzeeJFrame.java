@@ -91,8 +91,10 @@ public class YahtzeeJFrame extends JFrame {
                 increaseButton.addActionListener(new ActionListener() {
                     @Override
                     public void actionPerformed(ActionEvent e) {
-                        numberOfPlayers++;
-                        playerCountLabel.setText("Number of Players: " + numberOfPlayers);
+						if (numberOfPlayers < 6) {
+							numberOfPlayers++;
+                        	playerCountLabel.setText("Number of Players: " + numberOfPlayers);
+                        }
                     }
                 });
         
@@ -123,7 +125,6 @@ public class YahtzeeJFrame extends JFrame {
     class GameBoardJPanel extends JPanel{
 		private int currentPlayer;
 		private int currentPlayerCounter;
-		private int winningPlayer = 0;
 		private int totalTurns = 0;
 		private boolean joker = false;
 		private Player[] players;
@@ -145,7 +146,6 @@ public class YahtzeeJFrame extends JFrame {
 		private JButton button_lgStraight;
 		private JButton button_yahtzee;
 		private JButton button_chance;
-		private boolean isTie;
 		private static JMenuBar menuBar;
 		private static JMenu menu;
 		private static JMenuItem restart, returnToMenu;
