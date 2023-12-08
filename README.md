@@ -101,13 +101,15 @@ After all players have filled all their sections, the game ends, the player with
 ![Alt text](readme_images/winner.png)
 
 ### Returning to Menu, Restarting Game, Saving/Loading Game
+![Alt text](readme_images/options.png)
+
 In the top left corner, is a drop down menu that will allow you to restart the current game, or return to the main menu and create a new game with a new number of players.
 This menu also includes save and load options. If a game in progress is saved, another game with that same amount of players can be loaded with intact scorecards and which player's turn is up.
 
 ### High Score
 The game will automatically track the highest score won in a game!
 
-![Alt text](readme_images/options.png)
+
 ### Packing Game into a JAR / Running Game
 ```
 jar cvfm hwx.jar manifest *

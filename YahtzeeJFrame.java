@@ -13,6 +13,7 @@ public class YahtzeeJFrame extends JFrame {
     private GameBoardJPanel gameBoard;
     private CardLayout cardLayout;
     private JPanel mainPanel;
+	private JLabel playerCountLabel;
 
     YahtzeeJFrame(){
         super("Yahtzee");
@@ -41,31 +42,37 @@ public class YahtzeeJFrame extends JFrame {
 		startGame();
 	}
     class MainMenuJPanel extends JPanel{
+
+		private MainMenuActionListener e;
+		JButton singlePlayerButton;
+		JButton multiplayerButton;
+		JButton increaseButton;
+		JButton decreaseButton;
+
         public MainMenuJPanel() {
             // Set layout for the panel
+			e = new MainMenuActionListener();
             setLayout(new GridBagLayout());
             GridBagConstraints gbc = new GridBagConstraints();
             Icon logo = new ImageIcon( getClass().getResource( "assets/logo.png" ) );
             JLabel logoLabel = new JLabel(logo);
             // Create buttons
-            JButton singlePlayerButton = new JButton("Single Player");
+            singlePlayerButton = new JButton("Single Player");
             MultiplayerJPanel multiplayerButton = new MultiplayerJPanel();
+
     
-            // Add buttons to the panel
+            
+    
+            // ActionListener for the Single Player button
+			singlePlayerButton.setActionCommand("Single");
+            singlePlayerButton.addActionListener(e);
+
+			// Add buttons to the panel
             add(logoLabel,gbc);
             gbc.gridy = 1;
             add(singlePlayerButton,gbc);
             gbc.gridy = 2;
             add(multiplayerButton,gbc);
-    
-            // ActionListener for the Single Player button
-            singlePlayerButton.addActionListener(new ActionListener() {
-                public void actionPerformed(ActionEvent e) {
-                    System.out.println("Single Player button clicked");
-                    numberOfPlayers = 1;
-					startGame();
-                }
-            });
         }
         class MultiplayerJPanel extends JPanel{
     
@@ -73,57 +80,67 @@ public class YahtzeeJFrame extends JFrame {
                 setLayout(new FlowLayout());
         
                 // Create a button for multiplayer
-                JButton multiplayerButton = new JButton("Multiplayer");
-                add(multiplayerButton);
+                multiplayerButton = new JButton("Multiplayer");
+                
         
                 // Create a label to display the number of players
-                JLabel playerCountLabel = new JLabel("Number of Players: " + numberOfPlayers);
-                add(playerCountLabel);
+                playerCountLabel = new JLabel("Number of Players: " + numberOfPlayers);
+                
         
                 // Create buttons for increasing and decreasing player count
-                JButton increaseButton = new JButton("+");
-                JButton decreaseButton = new JButton("-");
+                increaseButton = new JButton("+");
+                decreaseButton = new JButton("-");
         
-                // Add buttons to the panel
+                
+        
+                // ActionListener for increasing player count
+				increaseButton.setActionCommand("Up");
+                increaseButton.addActionListener(e);
+        
+                // ActionListener for decreasing player count
+				decreaseButton.setActionCommand("Down");
+                decreaseButton.addActionListener(e);
+				
+
+                // ActionListener for the multiplayer button
+				multiplayerButton.setActionCommand("Multi");
+                multiplayerButton.addActionListener(e);
+
+				add(multiplayerButton);
+				add(playerCountLabel);
                 add(increaseButton);
                 add(decreaseButton);
 
-        
-                // ActionListener for increasing player count
-                increaseButton.addActionListener(new ActionListener() {
-                    @Override
-                    public void actionPerformed(ActionEvent e) {
-						if (numberOfPlayers < 6) {
-							numberOfPlayers++;
-                        	playerCountLabel.setText("Number of Players: " + numberOfPlayers);
-                        }
-                    }
-                });
-        
-                // ActionListener for decreasing player count
-                decreaseButton.addActionListener(new ActionListener() {
-                    @Override
-                    public void actionPerformed(ActionEvent e) {
-                        if (numberOfPlayers > 2) {
-                            numberOfPlayers--;
-                            playerCountLabel.setText("Number of Players: " + numberOfPlayers);
-                        }
-                    }
-                });
-        
-                // ActionListener for the multiplayer button
-                multiplayerButton.addActionListener(new ActionListener() {
-                    @Override
-                    public void actionPerformed(ActionEvent e) {
-                        // Add logic for the multiplayer button here
-                        // For example, start a multiplayer game
-                        System.out.println("Multiplayer button clicked. Players: " + numberOfPlayers);
-                        startGame();
-                    }
-                });
             }
         }
     }
+	class MainMenuActionListener implements ActionListener, Serializable{
+		public void actionPerformed(ActionEvent e){
+			String button = e.getActionCommand();
+			if (button == "Single"){
+				System.out.println("Single Player button clicked");
+				numberOfPlayers = 1;
+				startGame();
+			}
+			else if (button == "Up"){
+				if (numberOfPlayers < 6) {
+					numberOfPlayers++;
+					playerCountLabel.setText("Number of Players: " + numberOfPlayers);
+				}
+			}
+			else if (button == "Down"){
+				if (numberOfPlayers > 2) {
+					numberOfPlayers--;
+					playerCountLabel.setText("Number of Players: " + numberOfPlayers);
+				}
+			}
+			else if (button == "Multi"){
+				System.out.println("Multiplayer button clicked. Players: " + numberOfPlayers);
+				startGame();
+			}
+		}
+	}
+	
     class GameBoardJPanel extends JPanel{
 		private int currentPlayer;
 		private int currentPlayerCounter;
@@ -135,7 +152,6 @@ public class YahtzeeJFrame extends JFrame {
 		private Dice[] dice = new Dice[5];
 		ImageIcon [] diceImage;
 		private int currRoll = 1;
-		private boolean isTie;
 		private JLabel playerTurnLabel;
 		private JButton button_aces;
 		private JButton button_twos;
@@ -629,6 +645,7 @@ public class YahtzeeJFrame extends JFrame {
 							BufferedWriter high_out = new BufferedWriter(new FileWriter("high_score.txt"));
 							high_out.write(String.valueOf(max));
 							high_out.flush();
+							high_out.close();
 						}
 						catch(IOException ex){
 							System.out.println("(IOException)");
