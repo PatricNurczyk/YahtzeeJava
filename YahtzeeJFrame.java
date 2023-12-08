@@ -992,6 +992,7 @@ public class YahtzeeJFrame extends JFrame {
 				else if (button == "Save"){
 					// Copying data from the current game to the boardData serializable object
 					BoardData boardData = new BoardData();
+					boardData.numberOfPlayers = numberOfPlayers;
 					boardData.currentPlayer = currentPlayer;
 					boardData.currentPlayerCounter = currentPlayerCounter;
 					boardData.totalTurns = totalTurns;
@@ -1023,43 +1024,52 @@ public class YahtzeeJFrame extends JFrame {
 						// Attempts to load the save state into newBoard
 						BoardData newBoard = new BoardData();
 						newBoard.load();
+						// Checks for savegame - currentgame numberOfPlayer compatibility
+						if(newBoard.numberOfPlayers == numberOfPlayers){
+							//Sets values of current game to the save state values
+							numberOfPlayers = newBoard.numberOfPlayers;
+							currentPlayer = newBoard.currentPlayer;
+							currentPlayerCounter = newBoard.currentPlayerCounter;
+							totalTurns = newBoard.totalTurns;
+							for(int s = 0; s < numberOfPlayers; s++){
+								players[s] = newBoard.players[s];
+							}
+							for(int st = 0; st < 5; st++){
+								dice[st] = newBoard.dice[st];	
+							}
+							currRoll = newBoard.currRoll;
+							// Rewrites labels and borders to what the old save state values were
+							for(int y = 0; y < numberOfPlayers; y++){
+								playerScores[y].label_aces.setText(String.format("   %d   ",players[y].getAces()));
+								playerScores[y].label_twos.setText(String.format("   %d   ",players[y].getTwos()));
+								playerScores[y].label_threes.setText(String.format("   %d   ",players[y].getThrees()));
+								playerScores[y].label_fours.setText(String.format("   %d   ",players[y].getFours()));
+								playerScores[y].label_fives.setText(String.format("   %d   ",players[y].getFives()));
+								playerScores[y].label_sixes.setText(String.format("   %d   ",players[y].getSixes()));
+								playerScores[y].label_threeKind.setText(String.format("   %d   ",players[y].getThreeKind()));
+								playerScores[y].label_fourKind.setText(String.format("   %d   ",players[y].getFourKind()));
+								playerScores[y].label_fullHouse.setText(String.format("   %d   ",players[y].getFullHouse()));
+								playerScores[y].label_smStraight.setText(String.format("   %d   ",players[y].getSmStraight()));
+								playerScores[y].label_lgStraight.setText(String.format("   %d   ",players[y].getLgStraight()));
+								playerScores[y].label_yahtzee.setText(String.format("   %d   ",players[y].getYahtzee()));
+								playerScores[y].label_chance.setText(String.format("   %d   ",players[y].getChance()));
+								playerScores[y].label_upperBonus.setText(String.format("   %d   ",players[y].getUpperBonus()));
+								playerScores[y].label_upperTotal.setText(String.format("   %d   ",players[y].getUpper()));
+								playerScores[y].label_yahtzeeBonus.setText(String.format("   %d   ",players[y].getYahtzeeBonus()));
+								playerScores[y].label_total.setText(String.format("   %d   ",players[y].getTotal()));
+							}
+							if(numberOfPlayers > 1)
+								playerTurnLabel.setText(String.format("Turn: Player %d", currentPlayerCounter));
+							playerScores[0].setBorder(BorderFactory.createLineBorder(Color.BLACK));
+							playerScores[currentPlayer].setBorder(BorderFactory.createLineBorder(Color.RED, 4));
+							System.out.println("Load successful!");
+						}
+						// If number of players do not match
+						else
+						{
+							System.out.println("Load cancelled. Initialize game with proper number of players.");
+						}
 						
-						//Sets values of current game to the save state values
-						currentPlayer = newBoard.currentPlayer;
-						currentPlayerCounter = newBoard.currentPlayerCounter;
-						totalTurns = newBoard.totalTurns;
-						for(int s = 0; s < numberOfPlayers; s++){
-							players[s] = newBoard.players[s];
-						}
-						for(int st = 0; st < 5; st++){
-							dice[st] = newBoard.dice[st];	
-						}
-						currRoll = newBoard.currRoll;
-						// Rewrites labels and borders to what the old save state values were
-						for(int y = 0; y < numberOfPlayers; y++){
-							playerScores[y].label_aces.setText(String.format("   %d   ",players[y].getAces()));
-							playerScores[y].label_twos.setText(String.format("   %d   ",players[y].getTwos()));
-							playerScores[y].label_threes.setText(String.format("   %d   ",players[y].getThrees()));
-							playerScores[y].label_fours.setText(String.format("   %d   ",players[y].getFours()));
-							playerScores[y].label_fives.setText(String.format("   %d   ",players[y].getFives()));
-							playerScores[y].label_sixes.setText(String.format("   %d   ",players[y].getSixes()));
-							playerScores[y].label_threeKind.setText(String.format("   %d   ",players[y].getThreeKind()));
-							playerScores[y].label_fourKind.setText(String.format("   %d   ",players[y].getFourKind()));
-							playerScores[y].label_fullHouse.setText(String.format("   %d   ",players[y].getFullHouse()));
-							playerScores[y].label_smStraight.setText(String.format("   %d   ",players[y].getSmStraight()));
-							playerScores[y].label_lgStraight.setText(String.format("   %d   ",players[y].getLgStraight()));
-							playerScores[y].label_yahtzee.setText(String.format("   %d   ",players[y].getYahtzee()));
-							playerScores[y].label_chance.setText(String.format("   %d   ",players[y].getChance()));
-							playerScores[y].label_upperBonus.setText(String.format("   %d   ",players[y].getUpperBonus()));
-							playerScores[y].label_upperTotal.setText(String.format("   %d   ",players[y].getUpper()));
-							playerScores[y].label_yahtzeeBonus.setText(String.format("   %d   ",players[y].getYahtzeeBonus()));
-							playerScores[y].label_total.setText(String.format("   %d   ",players[y].getTotal()));
-						}
-						if(numberOfPlayers > 1)
-							playerTurnLabel.setText(String.format("Turn: Player %d", currentPlayerCounter));
-						playerScores[0].setBorder(BorderFactory.createLineBorder(Color.BLACK));
-						playerScores[currentPlayer].setBorder(BorderFactory.createLineBorder(Color.RED, 4));
-						System.out.println("Load successful!");
 					}
 					catch(IOException ex){
 						System.out.println("Load cancelled. (IOException)");
@@ -1080,6 +1090,7 @@ public class YahtzeeJFrame extends JFrame {
 		}
     }
 	class BoardData implements Serializable{
+		private int numberOfPlayers = 2;
 		private int currentPlayer;
 		private int currentPlayerCounter;
 		private int totalTurns = 0;
@@ -1094,6 +1105,7 @@ public class YahtzeeJFrame extends JFrame {
 			BoardData loadedData = (BoardData)objectInputStream.readObject();
 			objectInputStream.close();
 			// Sets newBoard variables (from where load() is called) to loadedData values
+			this.numberOfPlayers = loadedData.numberOfPlayers;
 			this.currentPlayer = loadedData.currentPlayer;
 			this.currentPlayerCounter = loadedData.currentPlayerCounter;
 			this.totalTurns = loadedData.totalTurns;

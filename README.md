@@ -97,11 +97,15 @@ This is a implementation of the famous board game Yahtzee in Java, Users will be
         - If the corresponding upper section is already filled, then you can choose any row in the lower section, and get awarded points.
         - If all of the lower section have been filled, and the corresponding upper section row has been filled, the player must select a seperate upper row and will mark 0 points for that section
 ### Winning the Game
-After all players have filled all thier sections, the game ends, the player with the highest points wins!
+After all players have filled all their sections, the game ends, the player with the highest points wins!
 ![Alt text](readme_images/winner.png)
 
-### Returning to Menu, Restarting Game
+### Returning to Menu, Restarting Game, Saving/Loading Game
 In the top left corner, is a drop down menu that will allow you to restart the current game, or return to the main menu and create a new game with a new number of players.
+This menu also includes save and load options. If a game in progress is saved, another game with that same amount of players can be loaded with intact scorecards and which player's turn is up.
+
+### High Score
+The game will automatically track the highest score won in a game!
 
 ![Alt text](readme_images/options.png)
 ### Packing Game into a JAR / Running Game
